@@ -715,8 +715,11 @@ class AlexaDaemon:
                 target_url = inner_params["url"][0]
 
         # 1. Comprobar si hemos llegado a /ap/maplanding con el código de retorno
-        authcode = self._extract_auth_code(target_url, request.query_string, str(request.url))
-        if authcode or "/ap/maplanding" in target_url or "/ap/maplanding" in str(request.url):
+        parsed_target = urllib.parse.urlparse(target_url)
+        is_maplanding = parsed_target.path.rstrip("/").lower() == "/ap/maplanding"
+        has_auth_code_param = "authorization_code=" in target_url.lower() or "authorization_code%3d" in target_url.lower()
+        authcode = self._extract_auth_code(target_url, request.query_string, str(request.url)) if (is_maplanding or has_auth_code_param) else ""
+        if authcode or is_maplanding:
             if authcode:
                 LOGGER.info("¡Código de autorización capturado desde URL de mapa de aterrizaje! (%s...)", authcode[:10])
                 success = await self.complete_oauth(authcode, self.active_proxy)
@@ -736,7 +739,6 @@ class AlexaDaemon:
         proxy_session: aiohttp.ClientSession = self.active_proxy["session"]
         method = request.method
 
-        parsed_target = urllib.parse.urlparse(target_url)
         target_host = (parsed_target.hostname or "").lower()
         if parsed_target.scheme != "https" or not self._is_allowed_amazon_host(target_host):
             LOGGER.warning("Proxy: hôte refusé %s", target_host)
