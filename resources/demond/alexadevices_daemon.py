@@ -1364,8 +1364,24 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
     async def handle_reset_session(self, request: web.Request) -> web.Response:
         """Limpia la sesión de Amazon guardada en disco y memoria."""
         try:
-            if self.http2_task and not self.http2_task.done():
-                self.http2_task.cancel()
+            if self.api:
+                try:
+                    await self.api.stop_http2_processing()
+                except Exception:
+                    pass
+                self.api = None
+            if self.httpx_client:
+                try:
+                    await self.httpx_client.aclose()
+                except Exception:
+                    pass
+                self.httpx_client = None
+            if self.session:
+                try:
+                    await self.session.close()
+                except Exception:
+                    pass
+                self.session = None
             if "session" in self.active_proxy:
                 try:
                     await self.active_proxy["session"].close()
@@ -1377,8 +1393,17 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
             self.devices = {}
             if os.path.exists(self.session_file):
                 os.remove(self.session_file)
+            for fname in ("proxy_auth_temp.json", "login_data.json"):
+                fpath = self.storage_dir / fname
+                if fpath.exists():
+                    try:
+                        fpath.unlink()
+                    except Exception:
+                        pass
+            LOGGER.info("Sesión de Amazon limpiada correctamente.")
             return web.json_response({"status": "ok"})
         except Exception as err:
+            LOGGER.error("Error limpiando sesión de Amazon: %s", err)
             return web.json_response({"error": str(err)}, status=500)
 
     async def start(self):
