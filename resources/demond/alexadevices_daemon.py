@@ -468,13 +468,71 @@ class AlexaDaemon:
         "us": "en_US",
     }
 
-    async def complete_oauth(self, authcode: str, proxy_data: dict[str, Any]) -> bool:
+    def _extract_auth_code(self, *sources: Any) -> str:
+        """Extrae el authorization_code de Amazon desde cualquier URL, fragmento, parámetro o texto."""
+        for src in sources:
+            if not src:
+                continue
+            src_str = str(src)
+            # 1. Búsqueda por regex sobre la cadena completa
+            for pattern in (
+                r'(?:[?&#]|^)(?:openid\.oa2\.)?(?:authorization_)?code=([^&#\s]+)',
+                r'(?:%26|%3F|%23)(?:openid\.oa2\.)?(?:authorization_)?code%3D([^%&#\s]+)',
+                r'openid\.oa2\.authorization_code=([^&#\s]+)',
+            ):
+                m = re.search(pattern, src_str, re.IGNORECASE)
+                if m:
+                    val = urllib.parse.unquote(m.group(1)).strip()
+                    if val and not val.startswith(("http://", "https://", "www.")):
+                        return val
+
+            # 2. Búsqueda estructurada con urlparse (en path, query y fragment)
+            try:
+                parsed = urllib.parse.urlparse(src_str)
+                for part in (parsed.query, parsed.fragment, parsed.path):
+                    if not part:
+                        continue
+                    clean_part = part.replace("&amp;", "&").replace(";", "&")
+                    params = urllib.parse.parse_qs(clean_part)
+                    for key in ("openid.oa2.authorization_code", "code", "authorization_code", "openid.oa2.code"):
+                        for k, v in params.items():
+                            if k.lower() == key.lower() and v and v[0]:
+                                val = v[0].strip()
+                                if val and not val.startswith(("http://", "https://", "www.")):
+                                    return val
+            except Exception:
+                pass
+
+            # 3. Si el texto es directamente el token OAuth (alfanumérico largo sin delimitadores URL)
+            clean_token = src_str.strip()
+            if not any(c in clean_token for c in ":=/?#&") and len(clean_token) > 15:
+                return clean_token
+
+        return ""
+
+    async def complete_oauth(self, authcode: str, proxy_data: Optional[dict[str, Any]] = None) -> bool:
         """Completa el registro del dispositivo tras capturar el authorization_code de Amazon."""
         try:
             LOGGER.info("Registrando dispositivo Alexa con el código de autorización recibido...")
+            if not proxy_data:
+                proxy_data = self.active_proxy
+
+            if not proxy_data or not proxy_data.get("code_verifier"):
+                temp_file = self.storage_dir / "proxy_auth_temp.json"
+                if temp_file.exists():
+                    try:
+                        with open(temp_file, "r", encoding="utf-8") as f:
+                            proxy_data = json.load(f)
+                    except Exception as err:
+                        LOGGER.warning("Error leyendo proxy_auth_temp.json: %s", err)
+
+            if not proxy_data or not proxy_data.get("code_verifier"):
+                LOGGER.error("No se encontró code_verifier para completar OAuth.")
+                return False
+
             code_verifier = proxy_data["code_verifier"]
-            serial = proxy_data["serial"]
-            domain = proxy_data["domain"]
+            serial = proxy_data.get("serial") or uuid.uuid4().hex.upper()
+            domain = proxy_data.get("domain", "es")
             domain_suffix = "com" if domain == "us" else ("co.uk" if domain == "gb" else domain)
             site = f"https://www.amazon.{domain_suffix}"
 
@@ -604,6 +662,20 @@ class AlexaDaemon:
             "created_at": time.time(),
         }
 
+        # Guardar copia de respaldo en disco por si el demonio se reinicia durante la autenticación
+        temp_file = self.storage_dir / "proxy_auth_temp.json"
+        try:
+            with open(temp_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "code_verifier": verifier,
+                    "serial": serial,
+                    "domain": domain,
+                    "language": language,
+                    "client_id": client_id,
+                }, f)
+        except Exception as err:
+            LOGGER.warning("Error guardando proxy_auth_temp.json: %s", err)
+
         LOGGER.info("Sesión de proxy oficial Amazon iniciada para dominio %s (host %s)", domain, amazon_host)
         sep = "&" if "?" in proxy_base else "?"
         redirect_url = f"{proxy_base}{sep}url={oauth_url}"
@@ -643,21 +715,18 @@ class AlexaDaemon:
                 target_url = inner_params["url"][0]
 
         # 1. Comprobar si hemos llegado a /ap/maplanding con el código de retorno
-        if "/ap/maplanding" in target_url:
-            parsed = urllib.parse.urlparse(target_url)
-            params = urllib.parse.parse_qs(parsed.query)
-            authcode = params.get("openid.oa2.authorization_code", [""])[0]
-
+        authcode = self._extract_auth_code(target_url, request.query_string, str(request.url))
+        if authcode or "/ap/maplanding" in target_url or "/ap/maplanding" in str(request.url):
             if authcode:
-                LOGGER.info("¡Código de autorización capturado desde URL de mapa de aterrizaje!")
+                LOGGER.info("¡Código de autorización capturado desde URL de mapa de aterrizaje! (%s...)", authcode[:10])
                 success = await self.complete_oauth(authcode, self.active_proxy)
                 if success:
                     return self._render_success_page()
                 else:
                     return web.Response(text="Error registrando en Amazon.", status=500, content_type="text/plain", charset="utf-8")
-            LOGGER.warning("Llegada a /ap/maplanding sin authorization_code: %s", target_url)
+            LOGGER.warning("Llegada a /ap/maplanding sin authorization_code: %s (query=%s)", target_url, request.query_string)
             return web.Response(
-                text="Amazon no devolvió el código de autorización OAuth. Cierra esta ventana e inténtalo de nuevo.",
+                text=f"Amazon no devolvió el código de autorización OAuth. URL: {target_url}",
                 status=400,
                 content_type="text/plain",
                 charset="utf-8",
@@ -723,17 +792,14 @@ class AlexaDaemon:
                 # Interceptar redirecciones (301, 302, 303, 307)
                 if resp_status in (301, 302, 303, 307):
                     location = resp.headers.get("Location", "")
-                    if "/ap/maplanding" in location:
-                        LOGGER.info("Redirección hacia maplanding detectada!")
-                        parsed_loc = urllib.parse.urlparse(location)
-                        params = urllib.parse.parse_qs(parsed_loc.query)
-                        authcode = params.get("openid.oa2.authorization_code", [""])[0]
-                        if authcode:
-                            success = await self.complete_oauth(authcode, self.active_proxy)
-                            if success:
-                                return self._render_success_page()
-                            else:
-                                return web.Response(text="Error al registrar en Amazon.", status=500, content_type="text/plain", charset="utf-8")
+                    authcode = self._extract_auth_code(location)
+                    if authcode:
+                        LOGGER.info("¡Código de autorización capturado desde redirección Location! (%s...)", authcode[:10])
+                        success = await self.complete_oauth(authcode, self.active_proxy)
+                        if success:
+                            return self._render_success_page()
+                        else:
+                            return web.Response(text="Error al registrar en Amazon.", status=500, content_type="text/plain", charset="utf-8")
 
                     if location:
                         location = urllib.parse.urljoin(target_url, location)
@@ -1041,17 +1107,24 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         if not raw_input:
             return web.json_response({"error": "Código o URL no proporcionado"}, status=400)
 
-        authcode = raw_input
-        if "openid.oa2.authorization_code=" in raw_input:
-            parsed = urllib.parse.urlparse(raw_input)
-            params = urllib.parse.parse_qs(parsed.query)
-            authcode = params.get("openid.oa2.authorization_code", [raw_input])[0]
+        authcode = self._extract_auth_code(raw_input) or raw_input.strip()
 
-        proxy_data = self.active_proxy or {
-            "code_verifier": base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"="),
-            "serial": uuid.uuid4().hex.upper(),
-            "domain": domain,
-        }
+        proxy_data = self.active_proxy
+        if not proxy_data or not proxy_data.get("code_verifier"):
+            temp_file = self.storage_dir / "proxy_auth_temp.json"
+            if temp_file.exists():
+                try:
+                    with open(temp_file, "r", encoding="utf-8") as f:
+                        proxy_data = json.load(f)
+                except Exception:
+                    pass
+
+        if not proxy_data or not proxy_data.get("code_verifier"):
+            proxy_data = {
+                "code_verifier": base64.urlsafe_b64encode(secrets.token_bytes(32)).rstrip(b"=").decode("ascii"),
+                "serial": uuid.uuid4().hex.upper(),
+                "domain": domain,
+            }
 
         success = await self.complete_oauth(authcode, proxy_data)
         if success:
