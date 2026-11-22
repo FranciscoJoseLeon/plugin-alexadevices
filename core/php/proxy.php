@@ -85,7 +85,11 @@ curl_setopt($ch, CURLOPT_TIMEOUT, 60);
 $method = $_SERVER['REQUEST_METHOD'];
 if ($method != 'GET') {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, file_get_contents('php://input'));
+    $post_body = file_get_contents('php://input');
+    if (empty($post_body) && !empty($_POST)) {
+        $post_body = http_build_query($_POST);
+    }
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post_body);
 }
 
 // Transmettre les en-têtes utiles du navigateur (sauf ceux propres à Jeedom).
@@ -101,8 +105,11 @@ foreach ($_SERVER as $key => $value) {
     }
     $headers[] = $name . ': ' . $value;
 }
-if (isset($_SERVER['CONTENT_TYPE'])) {
-    $headers[] = 'Content-Type: ' . $_SERVER['CONTENT_TYPE'];
+$content_type = isset($_SERVER['CONTENT_TYPE']) ? $_SERVER['CONTENT_TYPE'] : (isset($_SERVER['HTTP_CONTENT_TYPE']) ? $_SERVER['HTTP_CONTENT_TYPE'] : '');
+if (!empty($content_type)) {
+    $headers[] = 'Content-Type: ' . $content_type;
+} else if ($method != 'GET') {
+    $headers[] = 'Content-Type: application/x-www-form-urlencoded';
 }
 curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 

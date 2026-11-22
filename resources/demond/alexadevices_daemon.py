@@ -699,6 +699,10 @@ class AlexaDaemon:
         body = None
         if method in ("POST", "PUT", "PATCH"):
             body = await request.read()
+            if "content-type" not in [k.lower() for k in headers]:
+                headers["Content-Type"] = "application/x-www-form-urlencoded"
+
+        LOGGER.info("Proxy relay: %s %s (body=%d bytes)", method, target_url, len(body) if body else 0)
 
         try:
             async with proxy_session.request(
@@ -710,6 +714,11 @@ class AlexaDaemon:
             ) as resp:
                 resp_status = resp.status
                 resp_headers = {}
+                location = resp.headers.get("Location", "")
+                if location:
+                    LOGGER.info("Amazon respuesta %d -> Location: %s", resp_status, location)
+                else:
+                    LOGGER.info("Amazon respuesta %d para %s", resp_status, target_url)
 
                 # Interceptar redirecciones (301, 302, 303, 307)
                 if resp_status in (301, 302, 303, 307):
@@ -797,7 +806,8 @@ class AlexaDaemon:
             ):
                 return match.group(0)
             full_url = urllib.parse.urljoin(base_url, val)
-            return f"{attr}={quote}{proxy_base}{sep}url={full_url}{quote}"
+            encoded_url = urllib.parse.quote(full_url, safe="")
+            return f"{attr}={quote}{proxy_base}{sep}url={encoded_url}{quote}"
 
         html = re.sub(
             r'\b(action|href)\s*=\s*(["\'])([^"\']*)\2',
@@ -845,8 +855,15 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
     if (oFetch) {
         window.fetch = function (input, init) {
             try {
-                if (typeof input === 'string' || input instanceof URL) { input = rw(input); }
-                else if (input && input.url) { input = new Request(rw(input.url), input); }
+                if (typeof input === 'string' || input instanceof URL) {
+                    input = rw(input);
+                } else if (input && typeof input.url === 'string') {
+                    var targetUrl = rw(input.url);
+                    init = init || {};
+                    if (!init.method && input.method) init.method = input.method;
+                    if (!init.headers && input.headers) init.headers = input.headers;
+                    return oFetch.call(this, targetUrl, init);
+                }
             } catch (e) {}
             return oFetch.call(this, input, init);
         };
@@ -861,6 +878,17 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         var oBeacon = navigator.sendBeacon.bind(navigator);
         navigator.sendBeacon = function (u, d) { try { return oBeacon(rw(u), d); } catch (e) { return false; } };
     }
+    var oSubmit = HTMLFormElement.prototype.submit;
+    HTMLFormElement.prototype.submit = function () {
+        var raw = this.getAttribute('action') || '';
+        if (raw.indexOf(C.p) === -1) {
+            var target = abs(raw || C.c);
+            if (target) {
+                this.setAttribute('action', C.p + sep + 'url=' + encodeURIComponent(target));
+            }
+        }
+        return oSubmit.call(this);
+    };
     document.addEventListener('submit', function (e) {
         var f = e.target;
         if (!f || !f.tagName) return;
@@ -881,6 +909,16 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         f.setAttribute('action', C.p + sep + 'url=' + encodeURIComponent(target));
     }, true);
     document.addEventListener('click', function (e) {
+        var btn = e.target && e.target.closest ? e.target.closest('input[type="submit"], button[type="submit"], .a-button-input') : null;
+        if (btn && btn.form) {
+            var raw = btn.form.getAttribute('action') || '';
+            if (raw.indexOf(C.p) === -1) {
+                var target = abs(raw || C.c);
+                if (target) {
+                    btn.form.setAttribute('action', C.p + sep + 'url=' + encodeURIComponent(target));
+                }
+            }
+        }
         var a = e.target && e.target.closest ? e.target.closest('a') : null;
         if (!a) return;
         var raw = a.getAttribute('href');
