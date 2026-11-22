@@ -16,14 +16,14 @@
 require_once __DIR__ . '/../../../../core/php/core.inc.php';
 include_file('core', 'authentification', 'php');
 
-$cookie_name = 'alexa_devices_proxy';
-$cookie_path = '/plugins/alexa_devices/core/php/';
+$cookie_name = 'alexadevices_proxy';
+$cookie_path = '/plugins/alexadevices/core/php/';
 
 $auth_token = init('auth_token', '');
 if (empty($auth_token) && isset($_COOKIE[$cookie_name])) {
     $auth_token = $_COOKIE[$cookie_name];
 }
-$cached_token = cache::byKey('alexa_devices_auth_token')->getValue('');
+$cached_token = cache::byKey('alexadevices_auth_token')->getValue('');
 $is_token_valid = (!empty($auth_token) && !empty($cached_token) && hash_equals($cached_token, $auth_token));
 
 if (!isConnect('admin') && !$is_token_valid) {
@@ -41,7 +41,7 @@ if ($is_token_valid && (!isset($_COOKIE[$cookie_name]) || $_COOKIE[$cookie_name]
     ));
 }
 
-$daemon_port = config::byKey('daemon_port', 'alexa_devices', 55065);
+$daemon_port = config::byKey('daemon_port', 'alexadevices', 55065);
 $daemon_host = '127.0.0.1';
 
 $action = init('action', '');
@@ -54,7 +54,7 @@ if (preg_match('/(?:^|&)url=(.*)$/s', $raw_query, $m)) {
         $target_url = rawurldecode($target_url);
     }
 }
-$domain = preg_replace('/[^a-z]/', '', strtolower(init('domain', config::byKey('amazon_domain', 'alexa_devices', 'es'))));
+$domain = preg_replace('/[^a-z]/', '', strtolower(init('domain', config::byKey('amazon_domain', 'alexadevices', 'es'))));
 
 if (empty($target_url) && $action != 'start') {
     $domain_suffix = ($domain == 'us') ? 'com' : (($domain == 'gb') ? 'co.uk' : $domain);
@@ -66,10 +66,10 @@ if (empty($target_url) && $action != 'start') {
     }
 }
 
-$proxy_base = '/plugins/alexa_devices/core/php/proxy.php';
+$proxy_base = '/plugins/alexadevices/core/php/proxy.php';
 
 if ($action == 'start') {
-    config::save('amazon_domain', $domain, 'alexa_devices');
+    config::save('amazon_domain', $domain, 'alexadevices');
     $daemon_url = "http://{$daemon_host}:{$daemon_port}/proxy/start?domain=" . urlencode($domain) . "&proxy_base=" . urlencode($proxy_base);
 } else {
     $daemon_url = "http://{$daemon_host}:{$daemon_port}/proxy/relay?url=" . urlencode($target_url);

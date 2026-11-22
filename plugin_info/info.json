@@ -1,7 +1,7 @@
 {
-  "id": "alexa_devices",
-  "pluginId": "alexa_devices",
-  "name": "Alexa Devices",
+  "id": "alexadevices",
+  "pluginId": "alexadevices",
+  "name": "AlexaDevices",
   "description": {
     "fr_FR": "Plugin d'intégration pour les appareils Amazon Echo et Alexa dans Jeedom. Supporte les enceintes Echo, TTS, annonces, commandes vocales par texte, musique/sons, volume, Ne pas déranger, état multimédia et événements push HTTP/2 en temps réel.",
     "en_US": "Integration plugin for Amazon Echo and Alexa devices in Jeedom. Supports Echo speakers, TTS speech, announcements, text voice commands, music/sounds, volume control, DND, media player state, and real-time HTTP/2 push events.",
@@ -24,10 +24,10 @@
   "hasDependency": true,
   "hasOwnDeamon": true,
   "maxDependancyInstallTime": 25,
-  "changelog": "https://github.com/FranciscoJoseLeon/plugin-alexa_devices/blob/main/docs/#language#/changelog.md",
-  "documentation": "https://github.com/FranciscoJoseLeon/plugin-alexa_devices/blob/main/docs/#language#/index.md",
-  "changelog_beta": "https://github.com/FranciscoJoseLeon/plugin-alexa_devices/blob/beta/docs/#language#/changelog.md",
-  "documentation_beta": "https://github.com/FranciscoJoseLeon/plugin-alexa_devices/blob/beta/docs/#language#/index.md",
+  "changelog": "https://github.com/FranciscoJoseLeon/plugin-alexadevices/blob/main/docs/#language#/changelog.md",
+  "documentation": "https://github.com/FranciscoJoseLeon/plugin-alexadevices/blob/main/docs/#language#/index.md",
+  "changelog_beta": "https://github.com/FranciscoJoseLeon/plugin-alexadevices/blob/beta/docs/#language#/changelog.md",
+  "documentation_beta": "https://github.com/FranciscoJoseLeon/plugin-alexadevices/blob/beta/docs/#language#/index.md",
   "compatibility": [
     "smart",
     "luna",

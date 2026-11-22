@@ -9,19 +9,19 @@
 
 require_once dirname(__FILE__) . '/../../../core/php/core.inc.php';
 
-function alexa_devices_install() {
-    log::add('alexa_devices', 'info', 'Instalando plugin Alexa Devices...');
+function alexadevices_install() {
+    log::add('alexadevices', 'info', 'Instalando plugin Alexa Devices...');
 }
 
-function alexa_devices_update() {
-    log::add('alexa_devices', 'info', 'Actualizando plugin Alexa Devices...');
+function alexadevices_update() {
+    log::add('alexadevices', 'info', 'Actualizando plugin Alexa Devices...');
 }
 
-function alexa_devices_remove() {
-    log::add('alexa_devices', 'info', 'Desinstalando plugin Alexa Devices...');
+function alexadevices_remove() {
+    log::add('alexadevices', 'info', 'Desinstalando plugin Alexa Devices...');
     try {
-        alexa_devices::deamon_stop();
+        alexadevices::deamon_stop();
     } catch (Exception $e) {
-        log::add('alexa_devices', 'error', 'Error al detener demonio durante la desinstalación: ' . $e->getMessage());
+        log::add('alexadevices', 'error', 'Error al detener demonio durante la desinstalación: ' . $e->getMessage());
     }
 }

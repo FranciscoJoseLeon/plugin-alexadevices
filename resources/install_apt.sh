@@ -1,7 +1,7 @@
 #!/bin/bash
-# Script de instalación de dependencias para el plugin alexa_devices de Jeedom
+# Script de instalación de dependencias para el plugin alexadevices de Jeedom
 
-PROGRESS_FILE=/tmp/jeedom_install_in_progress_alexa_devices
+PROGRESS_FILE=/tmp/jeedom_install_in_progress_alexadevices
 if [ -f "$PROGRESS_FILE" ]; then
     echo "Instalación de dependencias ya en curso"
     exit 0

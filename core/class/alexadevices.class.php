@@ -9,7 +9,7 @@
 
 require_once dirname(__FILE__) . '/../../../../core/php/core.inc.php';
 
-class alexa_devices extends eqLogic {
+class alexadevices extends eqLogic {
 
     /* =========================================================================
      * GESTIÓN DEL DEMONIO (DAEMON)
@@ -17,10 +17,10 @@ class alexa_devices extends eqLogic {
 
     public static function deamon_info() {
         $return = array();
-        $return['log'] = 'alexa_devices_daemon';
+        $return['log'] = 'alexadevices_daemon';
         $return['state'] = 'nok';
 
-        $pid_file = jeedom::getTmpFolder('alexa_devices') . '/daemon.pid';
+        $pid_file = jeedom::getTmpFolder('alexadevices') . '/daemon.pid';
 
         if (file_exists($pid_file)) {
             $pid = intval(trim(file_get_contents($pid_file)));
@@ -58,14 +58,14 @@ class alexa_devices extends eqLogic {
         }
 
         $return['launchable'] = 'ok';
-        $return['auto'] = (config::byKey('deamonAutoMode', 'alexa_devices', 1) == 1) ? 1 : 0;
+        $return['auto'] = (config::byKey('deamonAutoMode', 'alexadevices', 1) == 1) ? 1 : 0;
         return $return;
     }
 
     public static function cron5() {
         $deamon_info = self::deamon_info();
         if ($deamon_info['auto'] == 1 && $deamon_info['state'] != 'ok') {
-            log::add('alexa_devices', 'info', 'Watchdog: Daemon is stopped, restarting...');
+            log::add('alexadevices', 'info', 'Watchdog: Daemon is stopped, restarting...');
             self::deamon_start();
         }
     }
@@ -77,19 +77,19 @@ class alexa_devices extends eqLogic {
             throw new Exception(__('Please verify plugin configuration and dependencies.', __FILE__));
         }
 
-        $port = config::byKey('daemon_port', 'alexa_devices', 55065);
-        $poll_interval = config::byKey('poll_interval', 'alexa_devices', 300);
-        $token = config::byKey('daemon_token', 'alexa_devices');
+        $port = config::byKey('daemon_port', 'alexadevices', 55065);
+        $poll_interval = config::byKey('poll_interval', 'alexadevices', 300);
+        $token = config::byKey('daemon_token', 'alexadevices');
         if (empty($token)) {
             $token = bin2hex(random_bytes(16));
-            config::save('daemon_token', $token, 'alexa_devices');
+            config::save('daemon_token', $token, 'alexadevices');
         }
 
         $internal_ip = config::byKey('internalAddr');
         if (empty($internal_ip)) {
             $internal_ip = '127.0.0.1';
         }
-        $jeedom_url = 'http://127.0.0.1/plugins/alexa_devices/core/php/jeeAlexaDevices.php';
+        $jeedom_url = 'http://127.0.0.1/plugins/alexadevices/core/php/jeeAlexaDevices.php';
 
         $path = realpath(dirname(__FILE__) . '/../../resources');
         $python_bin = $path . '/demond/venv/bin/python3';
@@ -97,7 +97,7 @@ class alexa_devices extends eqLogic {
             $python_bin = 'python3';
         }
 
-        $daemon_script = $path . '/demond/alexa_devices_daemon.py';
+        $daemon_script = $path . '/demond/alexadevices_daemon.py';
         $storage_dir = $path . '/data/storage';
 
         $cmd = $python_bin . ' ' . $daemon_script;
@@ -107,17 +107,17 @@ class alexa_devices extends eqLogic {
         $cmd .= ' --storage-dir ' . escapeshellarg($storage_dir);
         $cmd .= ' --poll-interval ' . intval($poll_interval);
 
-        $log_level = log::getLogLevel('alexa_devices');
+        $log_level = log::getLogLevel('alexadevices');
         $log_str = 'info';
         if ($log_level <= 100) $log_str = 'debug';
         elseif ($log_level >= 400) $log_str = 'error';
         $cmd .= ' --loglevel ' . $log_str;
 
-        $log_file = log::getPathToLog('alexa_devices_daemon');
-        $pid_file = jeedom::getTmpFolder('alexa_devices') . '/daemon.pid';
+        $log_file = log::getPathToLog('alexadevices_daemon');
+        $pid_file = jeedom::getTmpFolder('alexadevices') . '/daemon.pid';
         $full_cmd = $cmd . ' >> ' . $log_file . ' 2>&1 & echo $! > ' . $pid_file;
 
-        log::add('alexa_devices', 'info', 'Starting Alexa Devices daemon: ' . $full_cmd);
+        log::add('alexadevices', 'info', 'Starting Alexa Devices daemon: ' . $full_cmd);
         exec($full_cmd);
 
         $i = 0;
@@ -131,7 +131,7 @@ class alexa_devices extends eqLogic {
         }
 
         if ($i >= 10) {
-            log::add('alexa_devices', 'error', 'Could not start Alexa Devices daemon');
+            log::add('alexadevices', 'error', 'Could not start Alexa Devices daemon');
             return false;
         }
 
@@ -139,7 +139,7 @@ class alexa_devices extends eqLogic {
     }
 
     public static function deamon_stop() {
-        $pid_file = jeedom::getTmpFolder('alexa_devices') . '/daemon.pid';
+        $pid_file = jeedom::getTmpFolder('alexadevices') . '/daemon.pid';
         if (file_exists($pid_file)) {
             $pid = intval(trim(file_get_contents($pid_file)));
             if ($pid > 0) {
@@ -163,24 +163,24 @@ class alexa_devices extends eqLogic {
         }
 
         // Asegurar que no quede ningún proceso huérfano bloqueando el puerto
-        $port = config::byKey('daemon_port', 'alexa_devices', 55065);
+        $port = config::byKey('daemon_port', 'alexadevices', 55065);
         if (function_exists('exec')) {
             $sudo = (class_exists('system') && method_exists('system', 'getCmdSudo')) ? system::getCmdSudo() : 'sudo ';
             exec($sudo . 'fuser -k ' . intval($port) . '/tcp 2>/dev/null');
-            exec($sudo . 'pkill -f "alexa_devices_daemon.py" 2>/dev/null');
+            exec($sudo . 'pkill -f "alexadevices_daemon.py" 2>/dev/null');
         }
 
-        log::add('alexa_devices', 'info', 'Alexa Devices daemon stopped.');
+        log::add('alexadevices', 'info', 'Alexa Devices daemon stopped.');
     }
 
     public static function deamon_changeAutoMode($_mode) {
-        config::save('deamonAutoMode', $_mode, 'alexa_devices');
+        config::save('deamonAutoMode', $_mode, 'alexadevices');
     }
 
     public static function dependancy_info() {
         $return = array();
-        $return['log'] = log::getPathToLog('alexa_devices_dep');
-        $return['progress_file'] = '/tmp/jeedom_install_in_progress_alexa_devices';
+        $return['log'] = log::getPathToLog('alexadevices_dep');
+        $return['progress_file'] = '/tmp/jeedom_install_in_progress_alexadevices';
         $return['state'] = 'ok';
 
         $venv_py = dirname(__FILE__) . '/../../resources/demond/venv/bin/python3';
@@ -204,7 +204,7 @@ class alexa_devices extends eqLogic {
         $installed_version = trim(shell_exec($venv_py . ' -c "import importlib.metadata; print(importlib.metadata.version(\'aioamazondevices\'))" 2>/dev/null'));
         if (empty($installed_version) || version_compare($installed_version, $target_version, '<')) {
             $return['state'] = 'nok';
-            log::add('alexa_devices', 'warning', "Dependencias desactualizadas: aioamazondevices instalada (" . ($installed_version ?: 'ninguna') . ") < requerida ({$target_version}). Reinstalación necesaria.");
+            log::add('alexadevices', 'warning', "Dependencias desactualizadas: aioamazondevices instalada (" . ($installed_version ?: 'ninguna') . ") < requerida ({$target_version}). Reinstalación necesaria.");
         }
 
         if (file_exists($return['progress_file'])) {
@@ -215,8 +215,8 @@ class alexa_devices extends eqLogic {
     }
 
     public static function dependancy_install() {
-        log::remove('alexa_devices_dep');
-        return array('script' => dirname(__FILE__) . '/../../resources/install_apt.sh', 'log' => log::getPathToLog('alexa_devices_dep'));
+        log::remove('alexadevices_dep');
+        return array('script' => dirname(__FILE__) . '/../../resources/install_apt.sh', 'log' => log::getPathToLog('alexadevices_dep'));
     }
 
     /* =========================================================================
@@ -224,7 +224,7 @@ class alexa_devices extends eqLogic {
      * ========================================================================= */
 
     public static function callDaemon($endpoint, $data = array(), $method = 'POST') {
-        $port = config::byKey('daemon_port', 'alexa_devices', 55065);
+        $port = config::byKey('daemon_port', 'alexadevices', 55065);
         $url = 'http://127.0.0.1:' . $port . $endpoint;
 
         $ch = curl_init();
@@ -265,17 +265,17 @@ class alexa_devices extends eqLogic {
         try {
             self::syncRoutines(false);
         } catch (Exception $e) {
-            log::add('alexa_devices', 'debug', 'No se pudieron sincronizar rutinas automáticamente: ' . $e->getMessage());
+            log::add('alexadevices', 'debug', 'No se pudieron sincronizar rutinas automáticamente: ' . $e->getMessage());
         }
         return $res;
     }
 
     public static function isSleepModeActive() {
-        if (config::byKey('sleep_protection_enabled', 'alexa_devices', 0) != 1) {
+        if (config::byKey('sleep_protection_enabled', 'alexadevices', 0) != 1) {
             return false;
         }
-        $start = intval(config::byKey('sleep_start_hour', 'alexa_devices', 22));
-        $end = intval(config::byKey('sleep_end_hour', 'alexa_devices', 7));
+        $start = intval(config::byKey('sleep_start_hour', 'alexadevices', 22));
+        $end = intval(config::byKey('sleep_end_hour', 'alexadevices', 7));
         $now = intval(date('G'));
         if ($start == $end) {
             return false;
@@ -292,8 +292,8 @@ class alexa_devices extends eqLogic {
         $res = self::callDaemon($endpoint, array(), $method);
         $routines = isset($res['routines']) && is_array($res['routines']) ? $res['routines'] : array();
         sort($routines, SORT_NATURAL | SORT_FLAG_CASE);
-        config::save('routines_list', json_encode($routines), 'alexa_devices');
-        config::save('routines_updated_at', date('Y-m-d H:i:s'), 'alexa_devices');
+        config::save('routines_list', json_encode($routines), 'alexadevices');
+        config::save('routines_updated_at', date('Y-m-d H:i:s'), 'alexadevices');
 
         $listParts = array();
         foreach ($routines as $r) {
@@ -301,7 +301,7 @@ class alexa_devices extends eqLogic {
             $listParts[] = $safe . '|' . $safe;
         }
         $listValue = implode(';', $listParts);
-        foreach (self::byType('alexa_devices') as $eqLogic) {
+        foreach (self::byType('alexadevices') as $eqLogic) {
             $cmd = $eqLogic->getCmd(null, 'routine_select');
             if (is_object($cmd)) {
                 $cmd->setConfiguration('listValue', $listValue);
@@ -313,7 +313,7 @@ class alexa_devices extends eqLogic {
 
     public static function reloadAllCommands() {
         $count = 0;
-        foreach (self::byType('alexa_devices') as $eqLogic) {
+        foreach (self::byType('alexadevices') as $eqLogic) {
             $eqLogic->createDefaultCommands();
             $count++;
         }
@@ -321,7 +321,7 @@ class alexa_devices extends eqLogic {
     }
 
     public static function deleteAllAndRescan() {
-        foreach (self::byType('alexa_devices') as $eqLogic) {
+        foreach (self::byType('alexadevices') as $eqLogic) {
             $eqLogic->remove();
         }
         return self::syncDevices();
@@ -343,14 +343,14 @@ class alexa_devices extends eqLogic {
         $serial = $device['serial_number'];
         $name = !empty($device['account_name']) ? $device['account_name'] : $serial;
 
-        $eqLogic = self::byLogicalId($serial, 'alexa_devices');
+        $eqLogic = self::byLogicalId($serial, 'alexadevices');
         if (!is_object($eqLogic)) {
             $eqLogic = new self();
             $eqLogic->setLogicalId($serial);
-            $eqLogic->setEqType_name('alexa_devices');
+            $eqLogic->setEqType_name('alexadevices');
             $eqLogic->setIsEnable(1);
             $eqLogic->setIsVisible(1);
-            $defaultObj = config::byKey('default_object_id', 'alexa_devices', '');
+            $defaultObj = config::byKey('default_object_id', 'alexadevices', '');
             if (!empty($defaultObj) && is_object(jeeObject::byId($defaultObj))) {
                 $eqLogic->setObject_id($defaultObj);
             }
@@ -401,7 +401,7 @@ class alexa_devices extends eqLogic {
      * Resolves a distinct SVG image path and human-readable model/generation label for an eqLogic.
      */
     public static function resolveDeviceVisual($eqLogic) {
-        $base = 'plugins/alexa_devices/desktop/img/devices/';
+        $base = 'plugins/alexadevices/desktop/img/devices/';
         if (method_exists($eqLogic, 'isAirQualityMonitor') && $eqLogic->isAirQualityMonitor()) {
             $m = trim((string)$eqLogic->getConfiguration('model', ''));
             return array(
@@ -419,7 +419,7 @@ class alexa_devices extends eqLogic {
 
         $mLow = strtolower($model);
         $hwLow = strtolower($hw);
-        $base = 'plugins/alexa_devices/desktop/img/devices/';
+        $base = 'plugins/alexadevices/desktop/img/devices/';
 
         // Determinar imagen exacta según modelo, generación y tipo
         if ($family === 'WHA' || in_array($type, array('A3C9PE6TNYLTCH', 'AP1F6KUH00XPV'), true) || strpos($mLow, 'speaker group') !== false || strpos($mLow, 'stereo pair') !== false) {
@@ -1093,8 +1093,8 @@ class alexa_devices extends eqLogic {
         }
 
         $template = translate::exec(
-            getTemplate('core', $version, 'alexa_devices', 'alexa_devices'),
-            'plugins/alexa_devices/core/template/' . $version . '/alexa_devices.html'
+            getTemplate('core', $version, 'alexadevices', 'alexadevices'),
+            'plugins/alexadevices/core/template/' . $version . '/alexadevices.html'
         );
         return $this->postToHtml($_version, template_replace($replace, $template));
     }
@@ -1210,7 +1210,7 @@ class alexa_devices extends eqLogic {
         // 17. Action: Run Alexa routine (dropdown list)
         $routineSelectCmd = $this->getOrCreateCmd('routine_select', 'action', 'select', __('Run Routine (List)', __FILE__), false);
         if (is_object($routineSelectCmd)) {
-            $rawRoutines = config::byKey('routines_list', 'alexa_devices', array());
+            $rawRoutines = config::byKey('routines_list', 'alexadevices', array());
             $routines = is_string($rawRoutines) ? json_decode($rawRoutines, true) : $rawRoutines;
             if (is_array($routines) && !empty($routines)) {
                 $parts = array();
@@ -1227,7 +1227,7 @@ class alexa_devices extends eqLogic {
     private function getOrCreateCmd($logicalId, $type, $subType, $name, $isVisible = true, $template = null) {
         $cmd = $this->getCmd(null, $logicalId);
         if (!is_object($cmd)) {
-            $cmd = new alexa_devicesCmd();
+            $cmd = new alexadevicesCmd();
             $cmd->setLogicalId($logicalId);
             $cmd->setEqLogic_id($this->getId());
             $cmd->setName($name);
@@ -1330,7 +1330,7 @@ class alexa_devices extends eqLogic {
     }
 }
 
-class alexa_devicesCmd extends cmd {
+class alexadevicesCmd extends cmd {
 
     public function execute($options = array()) {
         $eqLogic = $this->getEqLogic();
@@ -1341,15 +1341,15 @@ class alexa_devicesCmd extends cmd {
         $serial = $eqLogic->getLogicalId();
         $logicalId = $this->getLogicalId();
 
-        log::add('alexa_devices', 'debug', "Ejecutando comando {$logicalId} en dispositivo {$serial}");
+        log::add('alexadevices', 'debug', "Ejecutando comando {$logicalId} en dispositivo {$serial}");
 
-        if (alexa_devices::isSleepModeActive()) {
+        if (alexadevices::isSleepModeActive()) {
             if ($logicalId === 'speak' || $logicalId === 'announcement') {
-                log::add('alexa_devices', 'info', "Silencio nocturno activo: comando {$logicalId} bloqueado en {$serial}");
+                log::add('alexadevices', 'info', "Silencio nocturno activo: comando {$logicalId} bloqueado en {$serial}");
                 return;
             }
-            if ($logicalId === 'whisper' && config::byKey('sleep_allow_whisper', 'alexa_devices', 1) != 1) {
-                log::add('alexa_devices', 'info', "Silencio nocturno activo: susurro bloqueado en {$serial}");
+            if ($logicalId === 'whisper' && config::byKey('sleep_allow_whisper', 'alexadevices', 1) != 1) {
+                log::add('alexadevices', 'info', "Silencio nocturno activo: susurro bloqueado en {$serial}");
                 return;
             }
         }
@@ -1388,10 +1388,10 @@ class alexa_devicesCmd extends cmd {
             case 'set_volume':
                 $action = 'set_volume';
                 $vol = isset($options['slider']) ? intval($options['slider']) : 50;
-                if (alexa_devices::isSleepModeActive()) {
-                    $maxSleepVol = intval(config::byKey('sleep_max_volume', 'alexa_devices', 0));
+                if (alexadevices::isSleepModeActive()) {
+                    $maxSleepVol = intval(config::byKey('sleep_max_volume', 'alexadevices', 0));
                     if ($maxSleepVol > 0 && $vol > $maxSleepVol) {
-                        log::add('alexa_devices', 'info', "Silencio nocturno: volumen limitado de {$vol}% a {$maxSleepVol}%");
+                        log::add('alexadevices', 'info', "Silencio nocturno: volumen limitado de {$vol}% a {$maxSleepVol}%");
                         $vol = $maxSleepVol;
                     }
                 }
@@ -1449,7 +1449,7 @@ class alexa_devicesCmd extends cmd {
             case 'routine':
                 $action = 'routine';
                 $params['routine'] = isset($options['message']) ? trim($options['message']) : '';
-                $defaultSerial = config::byKey('default_device_serial', 'alexa_devices', '');
+                $defaultSerial = config::byKey('default_device_serial', 'alexadevices', '');
                 if (!empty($defaultSerial)) {
                     $params['default_serial'] = $defaultSerial;
                 }
@@ -1458,7 +1458,7 @@ class alexa_devicesCmd extends cmd {
             case 'routine_select':
                 $action = 'routine';
                 $params['routine'] = isset($options['select']) ? trim($options['select']) : '';
-                $defaultSerial = config::byKey('default_device_serial', 'alexa_devices', '');
+                $defaultSerial = config::byKey('default_device_serial', 'alexadevices', '');
                 if (!empty($defaultSerial)) {
                     $params['default_serial'] = $defaultSerial;
                 }
@@ -1474,7 +1474,7 @@ class alexa_devicesCmd extends cmd {
             'params' => $params
         );
 
-        $res = alexa_devices::callDaemon('/api/command', $data, 'POST');
+        $res = alexadevices::callDaemon('/api/command', $data, 'POST');
         if ($logicalId === 'set_volume' && isset($params['volume'])) {
             $eqLogic->checkAndUpdateCmd('volume', $params['volume']);
         }

@@ -14,23 +14,23 @@ if (!isConnect('admin')) {
     throw new Exception('{{401 - Unauthorized access}}');
 }
 
-$dep_info = alexa_devices::dependancy_info();
-$daemon_info = alexa_devices::deamon_info();
+$dep_info = alexadevices::dependancy_info();
+$daemon_info = alexadevices::deamon_info();
 $daemon_ok = (isset($daemon_info['state']) && $daemon_info['state'] == 'ok');
 $deps_ok = (isset($dep_info['state']) && $dep_info['state'] == 'ok');
 
 $jeeObjects = jeeObject::all();
-$alexaDevices = eqLogic::byType('alexa_devices');
-$routinesJson = config::byKey('routines_list', 'alexa_devices', array());
+$alexaDevices = eqLogic::byType('alexadevices');
+$routinesJson = config::byKey('routines_list', 'alexadevices', array());
 $routinesList = is_string($routinesJson) ? json_decode($routinesJson, true) : $routinesJson;
 if (!is_array($routinesList)) {
     $routinesList = array();
 }
-$routinesUpdatedAt = config::byKey('routines_updated_at', 'alexa_devices', '');
-$sleepAllowWhisper = config::byKey('sleep_allow_whisper', 'alexa_devices', 1);
+$routinesUpdatedAt = config::byKey('routines_updated_at', 'alexadevices', '');
+$sleepAllowWhisper = config::byKey('sleep_allow_whisper', 'alexadevices', 1);
 
 // Pays Amazon : valeur enregistrée, sinon déduite de la langue de Jeedom.
-$current_domain = config::byKey('amazon_domain', 'alexa_devices', '');
+$current_domain = config::byKey('amazon_domain', 'alexadevices', '');
 if (empty($current_domain)) {
     $lang_map = array('es' => 'es', 'fr' => 'fr', 'de' => 'de', 'it' => 'it', 'en' => 'gb', 'pt' => 'es');
     $lang = substr(config::byKey('language', 'core', 'fr_FR'), 0, 2);
@@ -52,7 +52,7 @@ $countries = array(
 
 // Jeton temporaire autorisant la fenêtre de connexion Amazon (30 min).
 $auth_token = sha1(random_bytes(32));
-cache::set('alexa_devices_auth_token', $auth_token, 1800);
+cache::set('alexadevices_auth_token', $auth_token, 1800);
 ?>
 
 <style>
@@ -293,7 +293,7 @@ cache::set('alexa_devices_auth_token', $auth_token, 1800);
     var daemonOk = <?php echo $daemon_ok ? 'true' : 'false'; ?>;
     var popup = null;
     var pollTimer = null;
-    var ajaxUrl = 'plugins/alexa_devices/core/ajax/alexa_devices.ajax.php';
+    var ajaxUrl = 'plugins/alexadevices/core/ajax/alexadevices.ajax.php';
 
     function setStatus(state, user) {
         var $t = $('#alexa_status_text'), $s = $('#alexa_status_sub'), $b = $('#btn_alexa_connect span');
@@ -339,7 +339,7 @@ cache::set('alexa_devices_auth_token', $auth_token, 1800);
 
     function openAmazon() {
         var domain = $('#alexa_country').val();
-        var url = '/plugins/alexa_devices/core/php/proxy.php?action=start&domain=' + encodeURIComponent(domain) + '&auth_token=' + encodeURIComponent(authToken);
+        var url = '/plugins/alexadevices/core/php/proxy.php?action=start&domain=' + encodeURIComponent(domain) + '&auth_token=' + encodeURIComponent(authToken);
         var w = 520, h = 760;
         var left = Math.max(0, (screen.width - w) / 2), top = Math.max(0, (screen.height - h) / 2);
         popup = window.open(url, 'AlexaAmazonLogin', 'width=' + w + ',height=' + h + ',top=' + top + ',left=' + left + ',scrollbars=yes,resizable=yes');

@@ -49,7 +49,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
 )
-LOGGER = logging.getLogger("alexa_devices_daemon")
+LOGGER = logging.getLogger("alexadevices_daemon")
 
 
 class _AmazonUpstreamNoiseFilter(logging.Filter):
@@ -540,7 +540,7 @@ class AlexaDaemon:
     async def handle_proxy_start(self, request: web.Request) -> web.Response:
         """Inicia una sesión de proxy web para el login oficial de Amazon."""
         domain = request.query.get("domain", "es")
-        proxy_base = request.query.get("proxy_base", "/plugins/alexa_devices/core/php/proxy.php")
+        proxy_base = request.query.get("proxy_base", "/plugins/alexadevices/core/php/proxy.php")
 
         base_handle = self.DOMAIN_HANDLES.get(domain, f"_{domain}")
         language = self.DOMAIN_LANGUAGES.get(domain, "es_ES")
@@ -620,7 +620,7 @@ class AlexaDaemon:
             )
 
         target_url = request.query.get("url", "")
-        proxy_base = self.active_proxy.get("proxy_base", "/plugins/alexa_devices/core/php/proxy.php")
+        proxy_base = self.active_proxy.get("proxy_base", "/plugins/alexadevices/core/php/proxy.php")
         domain = self.active_proxy.get("domain", "es")
         language = self.active_proxy.get("language", "es_ES")
         amazon_host = self.active_proxy.get("amazon_host", f"www.amazon.{domain}")
@@ -636,7 +636,7 @@ class AlexaDaemon:
                 return web.Response(text="URL no especificada en el proxy.", status=400, content_type="text/plain", charset="utf-8")
 
         # Seguridad: evitar URLs doblemente envueltas por el proxy
-        if "/plugins/alexa_devices/core/php/proxy.php" in target_url:
+        if "/plugins/alexadevices/core/php/proxy.php" in target_url:
             inner_parsed = urllib.parse.urlparse(target_url)
             inner_params = urllib.parse.parse_qs(inner_parsed.query)
             if "url" in inner_params and inner_params["url"][0]:

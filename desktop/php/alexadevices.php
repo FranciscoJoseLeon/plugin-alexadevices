@@ -11,7 +11,7 @@ if (!isConnect('admin')) {
     throw new Exception('{{401 - Unauthorized access}}');
 }
 
-$plugin = plugin::byId('alexa_devices');
+$plugin = plugin::byId('alexadevices');
 sendVarToJS('eqType', $plugin->getId());
 $eqLogics = eqLogic::byType($plugin->getId());
 ?>
@@ -45,7 +45,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 <br>
                 <span>{{Synchronize Devices}}</span>
             </div>
-            <div class="cursor eqLogicAction logoSecondary" onclick="window.location.href = 'index.php?v=d&p=plugin&id=alexa_devices';">
+            <div class="cursor eqLogicAction logoSecondary" onclick="window.location.href = 'index.php?v=d&p=plugin&id=alexadevices';">
                 <i class="fas fa-wrench"></i>
                 <br>
                 <span>{{Configuration}}</span>
@@ -76,7 +76,7 @@ $eqLogics = eqLogic::byType($plugin->getId());
                 $vol = $eqLogic->getCmd(null, 'volume');
                 $volText = (is_object($vol)) ? '<span class="label label-info" style="font-size:9px;"><i class="fas fa-volume-up"></i> ' . intval($vol->execCmd()) . '%</span>' : '';
 
-                $visual = alexa_devices::resolveDeviceVisual($eqLogic);
+                $visual = alexadevices::resolveDeviceVisual($eqLogic);
 
                 echo '<div class="eqLogicDisplayCard cursor alexa-device-card ' . $opacity . '" data-eqLogic_id="' . $eqLogic->getId() . '">';
                 echo '<div class="alexa-card-icon-wrapper">';
@@ -403,6 +403,6 @@ $eqLogics = eqLogic::byType($plugin->getId());
     </div>
 </div>
 
-<?php include_file('desktop', 'alexa_devices', 'css', 'alexa_devices'); ?>
-<?php include_file('desktop', 'alexa_devices', 'js', 'alexa_devices'); ?>
+<?php include_file('desktop', 'alexadevices', 'css', 'alexadevices'); ?>
+<?php include_file('desktop', 'alexadevices', 'js', 'alexadevices'); ?>
 <?php include_file('core', 'plugin.template', 'js'); ?>

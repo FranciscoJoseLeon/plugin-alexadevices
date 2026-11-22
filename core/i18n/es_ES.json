@@ -1,5 +1,5 @@
 {
-    "plugins/alexa_devices/plugin_info/configuration.php": {
+    "plugins/alexadevices/plugin_info/configuration.php": {
         "401 - Unauthorized access": "401 - Acceso no autorizado",
         "Spain": "España",
         "France": "Francia",
@@ -87,7 +87,7 @@
         "None": "Ninguno",
         "Once synchronized, every Echo device gets these routines in its \"Run Routine (List)\" (routine_select) dropdown for Scenarios, Dashboard widgets, and testing. To trigger a Jeedom Scenario from Alexa by voice, use the device's \"Last Voice Command\" (last_command) as a Scenario trigger.": "Una vez sincronizadas, cada Echo recibe estas rutinas en su desplegable \"Ejecutar Rutina (Lista)\" (routine_select) para Escenarios, Dashboard y pruebas. Para lanzar un Escenario de Jeedom desde Alexa por voz, usa \"Último comando de voz\" (last_command) del Echo como disparador del escenario."
     },
-    "plugins/alexa_devices/desktop/php/alexa_devices.php": {
+    "plugins/alexadevices/desktop/php/alexadevices.php": {
         "401 - Unauthorized access": "401 - Acceso no autorizado",
         "Search...": "Buscar...",
         "Alexa Devices Management": "Gestión de Alexa Devices",
@@ -214,7 +214,7 @@
         "Alexa Smart Home devices": "Dispositivos de Hogar Digital Alexa",
         "You can control third-party lights, plugs, blinds or thermostats via Voice Command (text_command) or Amazon Routines, but this plugin does not import them as Jeedom devices or read their state.": "Puedes controlar bombillas, enchufes, persianas o termostatos de terceros mediante Comando de voz (text_command) o Rutinas de Amazon, pero este plugin no los importa como equipos de Jeedom ni lee su estado."
     },
-    "plugins/alexa_devices/desktop/js/alexa_devices.js": {
+    "plugins/alexadevices/desktop/js/alexadevices.js": {
         "Devices synchronized successfully": "Dispositivos sincronizados con éxito",
         "Name": "Nombre",
         "Min": "Mín",
@@ -308,7 +308,7 @@
         "Open blind": "Abrir persiana",
         "open bedroom blind": "abre la persiana del dormitorio"
     },
-    "plugins/alexa_devices/core/class/alexa_devices.class.php": {
+    "plugins/alexadevices/core/class/alexadevices.class.php": {
         "Please verify plugin configuration and dependencies.": "Por favor verifica la configuración del plugin y las dependencias.",
         "Online Status": "Estado En Línea",
         "Current Volume": "Volumen Actual",
@@ -385,18 +385,18 @@
         "Presence": "Presencia",
         "Motion": "Movimiento"
     },
-    "plugins/alexa_devices/core/ajax/alexa_devices.ajax.php": {
+    "plugins/alexadevices/core/ajax/alexadevices.ajax.php": {
         "401 - Unauthorized access": "401 - Acceso no autorizado",
         "You must provide username, password, and OTP code.": "Debes proporcionar usuario, contraseña y código OTP.",
         "Please provide an authorization code or return URL.": "Por favor, proporciona un código de autorización o URL de retorno.",
         "No valid action provided.": "Ninguna acción válida proporcionada."
     },
-    "plugins/alexa_devices/core/php/jeeAlexaDevices.php": {
+    "plugins/alexadevices/core/php/jeeAlexaDevices.php": {
         "Amazon session has expired. Please log in again in the plugin configuration.": "La sesión con Amazon ha caducado. Por favor, vuelve a iniciar sesión en la configuración del plugin.",
         "Amazon has updated its services": "Amazon ha actualizado sus servicios",
         "Please reinstall plugin dependencies from Plugins > Plugin management > Alexa Devices.": "Por favor, reinstala las dependencias del plugin Alexa Devices desde Plugins > Gestión de plugins > Alexa Devices."
     },
-    "plugins/alexa_devices/core/template/dashboard/alexa_devices.html": {
+    "plugins/alexadevices/core/template/dashboard/alexadevices.html": {
         "Previous": "Anterior",
         "Play": "Reproducir",
         "Pause": "Pausar",
@@ -451,7 +451,7 @@
         "Hazardous": "Peligroso",
         "Smart Air Quality Monitor": "Monitor inteligente de calidad del aire"
     },
-    "plugins/alexa_devices/core/php/proxy.php": {
+    "plugins/alexadevices/core/php/proxy.php": {
         "401 - Unauthorized access": "401 - Acceso no autorizado",
         "Alexa daemon not running": "El demonio de Alexa no está en marcha",
         "The plugin local service must be running to sign in with Amazon.": "El servicio local del plugin debe estar en marcha para iniciar sesión con Amazon.",

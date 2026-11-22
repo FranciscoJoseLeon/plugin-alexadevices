@@ -21,7 +21,7 @@ try {
 
     if ($action == 'getAuthStatus') {
         try {
-            $health = alexa_devices::callDaemon('/api/health', array(), 'GET');
+            $health = alexadevices::callDaemon('/api/health', array(), 'GET');
             ajax::success($health);
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -62,9 +62,9 @@ try {
         );
 
         try {
-            $result = alexa_devices::callDaemon('/api/login', $loginPayload, 'POST');
-            config::save('amazon_username', $username, 'alexa_devices');
-            config::save('amazon_domain', $domain, 'alexa_devices');
+            $result = alexadevices::callDaemon('/api/login', $loginPayload, 'POST');
+            config::save('amazon_username', $username, 'alexadevices');
+            config::save('amazon_domain', $domain, 'alexadevices');
             ajax::success($result);
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -73,7 +73,7 @@ try {
 
     if ($action == 'syncDevices') {
         try {
-            $result = alexa_devices::syncDevices();
+            $result = alexadevices::syncDevices();
             ajax::success($result);
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -88,7 +88,7 @@ try {
         }
 
         try {
-            $result = alexa_devices::callDaemon('/api/manual_code', array('code' => $code, 'domain' => $domain), 'POST');
+            $result = alexadevices::callDaemon('/api/manual_code', array('code' => $code, 'domain' => $domain), 'POST');
             ajax::success($result);
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -97,7 +97,7 @@ try {
 
     if ($action == 'getProxyStatus') {
         try {
-            $status = alexa_devices::callDaemon('/api/proxy_status', array(), 'GET');
+            $status = alexadevices::callDaemon('/api/proxy_status', array(), 'GET');
             ajax::success($status);
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -106,10 +106,10 @@ try {
 
     if ($action == 'refreshRoutines') {
         try {
-            $routines = alexa_devices::syncRoutines(true);
+            $routines = alexadevices::syncRoutines(true);
             ajax::success(array(
                 'routines' => $routines,
-                'updated_at' => config::byKey('routines_updated_at', 'alexa_devices', ''),
+                'updated_at' => config::byKey('routines_updated_at', 'alexadevices', ''),
             ));
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -118,7 +118,7 @@ try {
 
     if ($action == 'reloadAllCommands') {
         try {
-            $count = alexa_devices::reloadAllCommands();
+            $count = alexadevices::reloadAllCommands();
             ajax::success(array('count' => $count));
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -127,7 +127,7 @@ try {
 
     if ($action == 'deleteAllAndRescan') {
         try {
-            $res = alexa_devices::deleteAllAndRescan();
+            $res = alexadevices::deleteAllAndRescan();
             ajax::success($res);
         } catch (Exception $e) {
             ajax::error($e->getMessage());
@@ -136,7 +136,7 @@ try {
 
     if ($action == 'resetAmazonSession') {
         try {
-            alexa_devices::resetAmazonSession();
+            alexadevices::resetAmazonSession();
             ajax::success(true);
         } catch (Exception $e) {
             ajax::error($e->getMessage());

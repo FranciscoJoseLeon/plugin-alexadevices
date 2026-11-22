@@ -10,7 +10,7 @@ $('#bt_syncAlexaDevices').on('click', function () {
     $('#bt_syncAlexaDevices').find('i').addClass('fa-spin');
     $.ajax({
         type: 'POST',
-        url: 'plugins/alexa_devices/core/ajax/alexa_devices.ajax.php',
+        url: 'plugins/alexadevices/core/ajax/alexadevices.ajax.php',
         data: {
             action: 'syncDevices'
         },
@@ -49,9 +49,9 @@ $('#bt_resetSearch').on('click', function () {
 
 $('#bt_showPluginLog').on('click', function () {
     if (typeof jeedom.log.showLog === 'function') {
-        jeedom.log.showLog({logfile: 'alexa_devices'});
+        jeedom.log.showLog({logfile: 'alexadevices'});
     } else {
-        window.location.href = 'index.php?v=d&p=log&logfile=alexa_devices';
+        window.location.href = 'index.php?v=d&p=log&logfile=alexadevices';
     }
 });
 

@@ -25,7 +25,7 @@ if (!is_array($data)) {
     exit;
 }
 
-$expectedToken = config::byKey('daemon_token', 'alexa_devices');
+$expectedToken = config::byKey('daemon_token', 'alexadevices');
 if (!empty($expectedToken) && (!isset($data['token']) || $data['token'] !== $expectedToken)) {
     http_response_code(403);
     echo json_encode(array('error' => 'Invalid token'));
@@ -35,13 +35,13 @@ if (!empty($expectedToken) && (!isset($data['token']) || $data['token'] !== $exp
 $eventType = isset($data['event_type']) ? $data['event_type'] : '';
 $payload = isset($data['payload']) ? $data['payload'] : array();
 
-log::add('alexa_devices', 'debug', "Webhook recibido: {$eventType}");
+log::add('alexadevices', 'debug', "Webhook recibido: {$eventType}");
 
 switch ($eventType) {
     case 'devices_list':
         if (is_array($payload)) {
             foreach ($payload as $device) {
-                alexa_devices::createOrUpdateDevice($device);
+                alexadevices::createOrUpdateDevice($device);
             }
         }
         break;
@@ -49,7 +49,7 @@ switch ($eventType) {
     case 'volume_state':
         if (is_array($payload)) {
             foreach ($payload as $serial => $info) {
-                $eqLogic = alexa_devices::byLogicalId($serial, 'alexa_devices');
+                $eqLogic = alexadevices::byLogicalId($serial, 'alexadevices');
                 if (is_object($eqLogic) && isset($info['volume'])) {
                     $eqLogic->checkAndUpdateCmd('volume', $info['volume']);
                 }
@@ -60,7 +60,7 @@ switch ($eventType) {
     case 'media_state':
         if (is_array($payload)) {
             foreach ($payload as $serial => $info) {
-                $eqLogic = alexa_devices::byLogicalId($serial, 'alexa_devices');
+                $eqLogic = alexadevices::byLogicalId($serial, 'alexadevices');
                 if (is_object($eqLogic) && isset($info['state'])) {
                     $eqLogic->checkAndUpdateCmd('media_state', $info['state']);
                 }
@@ -71,7 +71,7 @@ switch ($eventType) {
     case 'dnd_state':
         if (is_array($payload)) {
             foreach ($payload as $serial => $enabled) {
-                $eqLogic = alexa_devices::byLogicalId($serial, 'alexa_devices');
+                $eqLogic = alexadevices::byLogicalId($serial, 'alexadevices');
                 if (is_object($eqLogic)) {
                     $eqLogic->checkAndUpdateCmd('dnd_status', $enabled ? 1 : 0);
                 }
@@ -82,7 +82,7 @@ switch ($eventType) {
     case 'history_state':
         if (is_array($payload)) {
             foreach ($payload as $serial => $rec) {
-                $eqLogic = alexa_devices::byLogicalId($serial, 'alexa_devices');
+                $eqLogic = alexadevices::byLogicalId($serial, 'alexadevices');
                 if (is_object($eqLogic) && !empty($rec['description'])) {
                     $eqLogic->checkAndUpdateCmd('last_command', $rec['description']);
                 }
@@ -93,7 +93,7 @@ switch ($eventType) {
     case 'sensor_state':
         if (is_array($payload)) {
             foreach ($payload as $serial => $sensors) {
-                $eqLogic = alexa_devices::byLogicalId($serial, 'alexa_devices');
+                $eqLogic = alexadevices::byLogicalId($serial, 'alexadevices');
                 if (is_object($eqLogic) && is_array($sensors)) {
                     $eqLogic->updateSensors($sensors);
                 }
@@ -102,12 +102,12 @@ switch ($eventType) {
         break;
 
     case 'auth_required':
-        message::add('alexa_devices', __('Amazon session has expired. Please log in again in the plugin configuration.', __FILE__));
+        message::add('alexadevices', __('Amazon session has expired. Please log in again in the plugin configuration.', __FILE__));
         break;
 
     case 'reinstall_dependencies_needed':
         $reason = isset($payload['reason']) ? ' (' . $payload['reason'] . ')' : '';
-        message::add('alexa_devices', __('Amazon has updated its services', __FILE__) . $reason . '. ' . __('Please reinstall plugin dependencies from Plugins > Plugin management > Alexa Devices.', __FILE__));
+        message::add('alexadevices', __('Amazon has updated its services', __FILE__) . $reason . '. ' . __('Please reinstall plugin dependencies from Plugins > Plugin management > Alexa Devices.', __FILE__));
         break;
 }
 

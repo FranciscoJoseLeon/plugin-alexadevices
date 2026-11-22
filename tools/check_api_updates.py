@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Monitors upstream Alexa API library (aioamazondevices) releases and API-level
-changes so the Jeedom alexa_devices plugin stays compatible with Amazon API updates.
+changes so the Jeedom alexadevices plugin stays compatible with Amazon API updates.
 """
 
 import json
