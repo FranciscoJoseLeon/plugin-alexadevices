@@ -606,7 +606,7 @@ class AlexaDaemon:
 
         LOGGER.info("Sesión de proxy oficial Amazon iniciada para dominio %s (host %s)", domain, amazon_host)
         sep = "&" if "?" in proxy_base else "?"
-        redirect_url = f"{proxy_base}{sep}url={urllib.parse.quote(oauth_url, safe='')}"
+        redirect_url = f"{proxy_base}{sep}url={oauth_url}"
         raise web.HTTPFound(redirect_url)
 
     async def handle_proxy_relay(self, request: web.Request) -> web.Response:
@@ -738,7 +738,7 @@ class AlexaDaemon:
                     if location:
                         location = urllib.parse.urljoin(target_url, location)
                         sep = "&" if "?" in proxy_base else "?"
-                        rewritten_loc = f"{proxy_base}{sep}url={urllib.parse.quote(location, safe='')}"
+                        rewritten_loc = f"{proxy_base}{sep}url={location}"
                         resp_headers["Location"] = rewritten_loc
                         return web.Response(status=resp_status, headers=resp_headers)
 
@@ -801,13 +801,15 @@ class AlexaDaemon:
             attr, quote, val = match.group(1), match.group(2), match.group(3)
             if not val or proxy_base in val or val.startswith(("#", "javascript:", "mailto:", "tel:", "data:")):
                 return match.group(0)
-            if attr.lower() == "href" and not (
-                val.startswith(("/ap/", "/ax/", f"https://{amazon_host}/ap/", f"https://{amazon_host}/ax/"))
-            ):
+            # No proxificar recursos estáticos (dejar que el navegador los descargue directamente de CDN)
+            clean_path = val.split("?")[0].lower()
+            if any(clean_path.endswith(ext) for ext in (".css", ".js", ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".woff", ".woff2")):
                 return match.group(0)
             full_url = urllib.parse.urljoin(base_url, val)
-            encoded_url = urllib.parse.quote(full_url, safe="")
-            return f"{attr}={quote}{proxy_base}{sep}url={encoded_url}{quote}"
+            parsed = urllib.parse.urlparse(full_url)
+            if parsed.hostname and self._is_allowed_amazon_host(parsed.hostname):
+                return f"{attr}={quote}{proxy_base}{sep}url={full_url}{quote}"
+            return match.group(0)
 
         html = re.sub(
             r'\b(action|href)\s*=\s*(["\'])([^"\']*)\2',
@@ -832,22 +834,16 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         try { return new URL(u, C.c).href; } catch (e) { return null; }
     }
     function rw(u) {
-        if (typeof u !== 'string' && !(u instanceof URL)) return u;
+        if (!u || (typeof u !== 'string' && !(u instanceof URL))) return u;
         u = String(u);
-        if (!u || u.indexOf(C.p) !== -1 || /^(data|blob|javascript|about):/i.test(u)) return u;
-        var full;
-        if (/^https?:\\/\\//i.test(u) || u.indexOf('//') === 0) {
-            full = abs(u);
-            if (!full) return u;
-            var host = new URL(full).hostname;
-            if (host === location.hostname) {
-                full = abs(new URL(full).pathname + new URL(full).search);
-            } else if (!isAmazon(host)) {
-                return u;
-            }
-        } else {
-            full = abs(u);
-            if (!full) return u;
+        if (u.indexOf(C.p) !== -1 || /^(data|blob|javascript|about):/i.test(u)) return u;
+        var full = abs(u);
+        if (!full) return u;
+        var host = new URL(full).hostname;
+        if (host === location.hostname) {
+            full = abs(new URL(full).pathname + new URL(full).search);
+        } else if (!isAmazon(host)) {
+            return u;
         }
         return C.p + sep + 'url=' + encodeURIComponent(full);
     }
@@ -859,10 +855,16 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
                     input = rw(input);
                 } else if (input && typeof input.url === 'string') {
                     var targetUrl = rw(input.url);
-                    init = init || {};
-                    if (!init.method && input.method) init.method = input.method;
-                    if (!init.headers && input.headers) init.headers = input.headers;
-                    return oFetch.call(this, targetUrl, init);
+                    if (targetUrl !== input.url) {
+                        try {
+                            input = new Request(targetUrl, input);
+                        } catch (e) {
+                            init = init || {};
+                            if (!init.method && input.method) init.method = input.method;
+                            if (!init.headers && input.headers) init.headers = input.headers;
+                            return oFetch.call(this, targetUrl, init);
+                        }
+                    }
                 }
             } catch (e) {}
             return oFetch.call(this, input, init);
@@ -893,20 +895,12 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         var f = e.target;
         if (!f || !f.tagName) return;
         var raw = f.getAttribute('action') || '';
-        if (raw.indexOf(C.p) !== -1) {
-            if ((f.method || 'get').toLowerCase() !== 'get') return;
-            var q = raw.indexOf('url=');
-            raw = q !== -1 ? decodeURIComponent(raw.substring(q + 4)) : C.c;
+        if (raw.indexOf(C.p) === -1) {
+            var target = abs(raw || C.c);
+            if (target) {
+                f.setAttribute('action', C.p + sep + 'url=' + encodeURIComponent(target));
+            }
         }
-        var target = abs(raw || C.c);
-        if (!target) return;
-        if ((f.method || 'get').toLowerCase() === 'get') {
-            e.preventDefault();
-            var params = new URLSearchParams(new FormData(f)).toString();
-            window.location.href = C.p + sep + 'url=' + encodeURIComponent(target.split('?')[0] + (params ? '?' + params : ''));
-            return;
-        }
-        f.setAttribute('action', C.p + sep + 'url=' + encodeURIComponent(target));
     }, true);
     document.addEventListener('click', function (e) {
         var btn = e.target && e.target.closest ? e.target.closest('input[type="submit"], button[type="submit"], .a-button-input') : null;
@@ -928,7 +922,7 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         var host = new URL(target).hostname;
         if (!isAmazon(host) && host !== location.hostname) return;
         e.preventDefault();
-        window.location.href = rw(raw);
+        window.location.href = C.p + sep + 'url=' + encodeURIComponent(target);
     }, true);
     document.addEventListener('change', function (e) {
         var el = e.target;
