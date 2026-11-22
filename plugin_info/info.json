@@ -1,7 +1,7 @@
 {
   "id": "alexadevices",
   "pluginId": "alexadevices",
-  "name": "AlexaDevices",
+  "name": "Alexa Devices",
   "description": {
     "fr_FR": "Plugin d'intégration pour les appareils Amazon Echo et Alexa dans Jeedom. Supporte les enceintes Echo, TTS, annonces, commandes vocales par texte, musique/sons, volume, Ne pas déranger, état multimédia et événements push HTTP/2 en temps réel.",
     "en_US": "Integration plugin for Amazon Echo and Alexa devices in Jeedom. Supports Echo speakers, TTS speech, announcements, text voice commands, music/sounds, volume control, DND, media player state, and real-time HTTP/2 push events.",
