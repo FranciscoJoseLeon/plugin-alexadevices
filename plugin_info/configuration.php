@@ -72,7 +72,7 @@ cache::set('alexadevices_auth_token', $auth_token, 1800);
 
         <div id="alexa_auth_card">
             <?php if (!$deps_ok || !$daemon_ok) { ?>
-                <div class="alert alert-warning" style="margin-bottom:16px;">
+                <div class="alert alert-warning" id="alexa_daemon_warning" style="margin-bottom:16px;">
                     <i class="fas fa-exclamation-triangle"></i>
                     <strong>{{Before connecting:}}</strong>
                     <?php if (!$deps_ok) { ?>{{install the dependencies (Dependencies section above, "Relaunch" button), then}}<?php } ?>
@@ -298,14 +298,23 @@ cache::set('alexadevices_auth_token', $auth_token, 1800);
     function setStatus(state, user) {
         var $t = $('#alexa_status_text'), $s = $('#alexa_status_sub'), $b = $('#btn_alexa_connect span');
         if (state === 'connected') {
+            daemonOk = true;
+            $('#alexa_daemon_warning').hide();
+            $('#btn_alexa_connect').prop('disabled', false);
             $t.html('<i class="fas fa-check-circle" style="color:#5cb85c;"></i> {{Connected to Amazon}}' + (user ? ' — ' + $('<span>').text(user).html() : ''));
             $s.text('{{Your Echo devices are synchronized. You only need to reconnect if Amazon closes the session.}}');
             $b.text('{{Reconnect}}');
             $('#alexa_steps').hide();
         } else if (state === 'nodaemon') {
+            daemonOk = false;
+            $('#alexa_daemon_warning').show();
+            $('#btn_alexa_connect').prop('disabled', true);
             $t.html('<i class="fas fa-pause-circle" style="color:#f0ad4e;"></i> {{Daemon stopped}}');
             $s.text('{{Start the daemon to be able to connect.}}');
         } else {
+            daemonOk = true;
+            $('#alexa_daemon_warning').hide();
+            $('#btn_alexa_connect').prop('disabled', false);
             $t.html('<i class="fas fa-times-circle" style="color:#d9534f;"></i> {{Not connected}}');
             $s.text('{{Choose your country and click the button. Your email and password are entered directly on the Amazon page, never in Jeedom.}}');
             $b.text('{{Connect with Amazon}}');
@@ -464,6 +473,14 @@ cache::set('alexadevices_auth_token', $auth_token, 1800);
         });
     });
 
-    if (daemonOk) { checkStatus(); } else { setStatus('nodaemon'); }
+    if (daemonOk) {
+        checkStatus();
+    } else {
+        setStatus('nodaemon');
+        var daemonWaitTimer = setInterval(function () {
+            checkStatus();
+            if (daemonOk) { clearInterval(daemonWaitTimer); }
+        }, 3000);
+    }
 })();
 </script>
