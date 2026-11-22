@@ -817,6 +817,11 @@ class AlexaDaemon:
                     if hk.lower() in (
                         "content-security-policy",
                         "content-security-policy-report-only",
+                        "permissions-policy",
+                        "feature-policy",
+                        "cross-origin-opener-policy",
+                        "cross-origin-embedder-policy",
+                        "cross-origin-resource-policy",
                         "x-frame-options",
                         "strict-transport-security",
                         "content-encoding",
@@ -1010,9 +1015,10 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         if idx != -1:
             end = html.find(">", idx)
             html = html[: end + 1] + helper_script + html[end + 1:]
-        elif "</body>" in html:
-            html = html.replace("</body>", helper_script + "</body>")
-        else:
+        elif "</body>" in lower:
+            b_idx = lower.find("</body>")
+            html = html[:b_idx] + helper_script + html[b_idx:]
+        elif "<html" in lower:
             html = helper_script + html
 
         return html
