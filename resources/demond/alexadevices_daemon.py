@@ -953,8 +953,67 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         var oBeacon = navigator.sendBeacon.bind(navigator);
         navigator.sendBeacon = function (u, d) { try { return oBeacon(rw(u), d); } catch (e) { return false; } };
     }
+    var savedInputs = {};
+    var submitting = false;
+    function inputKey(el) {
+        if (!el || el.tagName !== 'INPUT') return '';
+        var t = (el.type || 'text').toLowerCase();
+        if (t !== 'text' && t !== 'tel' && t !== 'number' && t !== 'search') return '';
+        if (el.id) return '#' + el.id;
+        if (el.name) return 'name:' + el.name;
+        return '';
+    }
+    function findInput(key) {
+        if (key.charAt(0) === '#') return document.getElementById(key.slice(1));
+        if (key.indexOf('name:') === 0) {
+            var els = document.getElementsByName(key.slice(5));
+            return els && els.length ? els[0] : null;
+        }
+        return null;
+    }
+    function restoreClearedInputs() {
+        if (submitting) return;
+        var now = Date.now();
+        for (var k in savedInputs) {
+            if (!Object.prototype.hasOwnProperty.call(savedInputs, k)) continue;
+            var entry = savedInputs[k];
+            if (!entry || !entry.val || now - entry.ts > 30000) {
+                delete savedInputs[k];
+                continue;
+            }
+            var el = findInput(k);
+            if (el && el.value === '') {
+                el.value = entry.val;
+                try {
+                    el.focus();
+                    if (typeof el.setSelectionRange === 'function') {
+                        el.setSelectionRange(entry.val.length, entry.val.length);
+                    }
+                } catch (e) {}
+            }
+        }
+    }
+    document.addEventListener('input', function (e) {
+        if (!e.isTrusted) return;
+        var k = inputKey(e.target);
+        if (!k) return;
+        if (e.target.value) {
+            savedInputs[k] = { val: e.target.value, ts: Date.now() };
+        } else {
+            delete savedInputs[k];
+        }
+    }, true);
+    setInterval(restoreClearedInputs, 250);
+    if (typeof MutationObserver !== 'undefined') {
+        var obs = new MutationObserver(function () { restoreClearedInputs(); });
+        document.addEventListener('DOMContentLoaded', function () {
+            if (document.body) obs.observe(document.body, { childList: true, subtree: true });
+        });
+    }
     var oSubmit = HTMLFormElement.prototype.submit;
     HTMLFormElement.prototype.submit = function () {
+        submitting = true;
+        savedInputs = {};
         var raw = this.getAttribute('action') || '';
         if (raw.indexOf(C.p) === -1) {
             var target = abs(raw || C.c);
@@ -965,6 +1024,8 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
         return oSubmit.call(this);
     };
     document.addEventListener('submit', function (e) {
+        submitting = true;
+        savedInputs = {};
         var f = e.target;
         if (!f || !f.tagName) return;
         var raw = f.getAttribute('action') || '';
