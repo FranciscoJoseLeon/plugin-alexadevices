@@ -324,7 +324,7 @@ cache::set('alexadevices_auth_token', $auth_token, 1800);
 
     function checkStatus(onConnected) {
         $.ajax({
-            type: 'POST', url: ajaxUrl, data: { action: 'getAuthStatus' }, dataType: 'json',
+            type: 'POST', url: ajaxUrl, data: { action: 'getAuthStatus' }, dataType: 'json', global: false,
             error: function () { setStatus(daemonOk ? 'disconnected' : 'nodaemon'); },
             success: function (data) {
                 if (data.state != 'ok') { setStatus(daemonOk ? 'disconnected' : 'nodaemon'); return; }
