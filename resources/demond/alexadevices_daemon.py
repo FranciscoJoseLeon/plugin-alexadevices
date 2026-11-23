@@ -60,6 +60,8 @@ class _AmazonUpstreamNoiseFilter(logging.Filter):
         if record.levelno >= logging.ERROR and "PUSH_EQUALIZER_STATE_CHANGE" in msg:
             exc = record.exc_info[1] if record.exc_info else None
             if exc and "Forbidden" in str(exc):
+                if logging.getLogger("aioamazondevices").getEffectiveLevel() > logging.DEBUG:
+                    return False
                 record.levelno = logging.DEBUG
                 record.levelname = "DEBUG"
                 record.exc_info = None
