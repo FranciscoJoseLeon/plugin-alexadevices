@@ -118,6 +118,8 @@ class AlexaDaemon:
                 return False
 
             LOGGER.info("Intentando restaurar sesión para el usuario %s", username)
+            if self.session:
+                await self.session.close()
             self.session = aiohttp.ClientSession()
             self.api = AmazonEchoApi(
                 self.session,
@@ -142,6 +144,9 @@ class AlexaDaemon:
         except Exception as err:
             LOGGER.warning("No se pudo restaurar la sesión guardada: %s", err)
             self.is_authenticated = False
+            if self.session:
+                await self.session.close()
+                self.session = None
             return False
 
     def _register_event_listeners(self):
@@ -571,6 +576,12 @@ class AlexaDaemon:
             self.current_user = user_name
             if self.active_proxy:
                 self.active_proxy["status"] = "success"
+                proxy_sess = self.active_proxy.pop("session", None)
+                if proxy_sess:
+                    try:
+                        await proxy_sess.close()
+                    except Exception:
+                        pass
 
             with open(self.session_file, "w", encoding="utf-8") as f:
                 json.dump({
@@ -604,15 +615,14 @@ class AlexaDaemon:
         language = self.DOMAIN_LANGUAGES.get(domain, "es_ES")
         domain_suffix = "com" if domain == "us" else ("co.uk" if domain == "gb" else domain)
 
-        temp_session = aiohttp.ClientSession()
-        temp_api = AmazonEchoApi(temp_session, "alexa_user", "", save_data=AmazonSaveDataConfig(path=self.storage_dir))
-        temp_api._session_state_data.country_specific_data(f"https://www.amazon.{domain_suffix}")
+        async with aiohttp.ClientSession() as temp_session:
+            temp_api = AmazonEchoApi(temp_session, "alexa_user", "", save_data=AmazonSaveDataConfig(path=self.storage_dir))
+            temp_api._session_state_data.country_specific_data(f"https://www.amazon.{domain_suffix}")
 
-        verifier = temp_api.login._create_code_verifier()
-        challenge = temp_api.login._create_s256_code_challenge(verifier).decode("ascii")
-        serial = temp_api.login._serial
-        client_id = temp_api.login._build_client_id()
-        await temp_session.close()
+            verifier = temp_api.login._create_code_verifier()
+            challenge = temp_api.login._create_s256_code_challenge(verifier).decode("ascii")
+            serial = temp_api.login._serial
+            client_id = temp_api.login._build_client_id()
 
         amazon_host = f"www.amazon.{domain_suffix}"
         return_to = f"https://{amazon_host}/ap/maplanding"
@@ -1448,6 +1458,9 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
             await self.httpx_client.aclose()
         if self.session:
             await self.session.close()
+        proxy_sess = self.active_proxy.pop("session", None) if self.active_proxy else None
+        if proxy_sess:
+            await proxy_sess.close()
         if self.runner:
             await self.runner.cleanup()
         LOGGER.info("Demonio detenido.")
