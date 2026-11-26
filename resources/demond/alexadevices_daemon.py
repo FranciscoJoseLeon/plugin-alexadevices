@@ -211,10 +211,15 @@ class AlexaDaemon:
         LOGGER.debug("Evento de estado multimedia recibido: %s", media_states)
         formatted = {}
         for serial, state in media_states.items():
+            player_state = getattr(state, "player_state", None)
+            if player_state is None:
+                player_state = getattr(state, "state", None)
+            if player_state is None:
+                player_state = "IDLE"
             formatted[serial] = {
-                "state": getattr(state, "state", None),
-                "title": getattr(state, "title", None),
-                "artist": getattr(state, "artist", None),
+                "state": str(player_state),
+                "title": getattr(state, "now_playing_title", None) or getattr(state, "title", None),
+                "artist": getattr(state, "now_playing_line1", None) or getattr(state, "artist", None),
             }
         await self._send_to_jeedom("media_state", formatted)
 
