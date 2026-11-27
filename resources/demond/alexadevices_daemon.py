@@ -174,6 +174,10 @@ class AlexaDaemon:
         self.api.on_todo_event.append(self._on_todo_event)
         self.api.on_todo_event.freeze()
 
+        if hasattr(self.api, "on_notification_event"):
+            self.api.on_notification_event.append(self._on_notification_event)
+            self.api.on_notification_event.freeze()
+
     async def _send_to_jeedom(self, event_type: str, payload: dict[str, Any]):
         """Envía notificaciones de cambios y eventos a Jeedom vía webhook."""
         if not self.jeedom_url:
@@ -276,6 +280,40 @@ class AlexaDaemon:
         LOGGER.debug("Evento de lista de tareas: %s", list_event)
         await self._send_to_jeedom("todo_event", {"list_id": getattr(list_event, "list_id", None)})
 
+    async def _on_notification_event(self, notifications):
+        LOGGER.debug("Evento de notificaciones (alarmas/temporizadores/recordatorios): %s", notifications)
+        if not isinstance(notifications, dict):
+            return
+        type_to_cmd = {
+            "alarm": "next_alarm",
+            "timer": "next_timer",
+            "reminder": "next_reminder",
+        }
+        formatted = {}
+        for serial, schedules in notifications.items():
+            if not isinstance(schedules, dict):
+                continue
+            earliest = {"next_alarm": None, "next_timer": None, "next_reminder": None}
+            for sched in schedules.values():
+                stype = str(getattr(sched, "type", "") or "").lower()
+                cmd_key = type_to_cmd.get(stype)
+                if not cmd_key:
+                    continue
+                status = str(getattr(sched, "status", "") or "").upper()
+                if status in ("OFF", "DISABLED", "DISMISSED"):
+                    continue
+                occ = getattr(sched, "next_occurrence", None)
+                if occ is None:
+                    continue
+                if earliest[cmd_key] is None or occ < earliest[cmd_key]:
+                    earliest[cmd_key] = occ
+            formatted[serial] = {
+                k: (v.astimezone().strftime("%Y-%m-%d %H:%M:%S") if getattr(v, "tzinfo", None) else v.strftime("%Y-%m-%d %H:%M:%S")) if v else ""
+                for k, v in earliest.items()
+            }
+        if formatted:
+            await self._send_to_jeedom("notification_state", formatted)
+
     async def start_http2(self):
         """Inicia el procesamiento de la conexión push HTTP/2 persistente con Amazon AVS."""
         if not self.api or not self.is_authenticated:
@@ -313,6 +351,11 @@ class AlexaDaemon:
                 await self.api.sync_dnd_state()
             except Exception:
                 pass
+            if hasattr(self.api, "sync_notifications"):
+                try:
+                    await self.api.sync_notifications()
+                except Exception:
+                    pass
 
             devs_summary = {
                 serial: self._serialize_device(dev)

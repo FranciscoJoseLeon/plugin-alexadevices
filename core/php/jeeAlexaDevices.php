@@ -101,6 +101,21 @@ switch ($eventType) {
         }
         break;
 
+    case 'notification_state':
+        if (is_array($payload)) {
+            foreach ($payload as $serial => $info) {
+                $eqLogic = alexadevices::byLogicalId($serial, 'alexadevices');
+                if (is_object($eqLogic) && is_array($info)) {
+                    foreach (array('next_alarm', 'next_timer', 'next_reminder') as $cmdKey) {
+                        if (array_key_exists($cmdKey, $info)) {
+                            $eqLogic->checkAndUpdateCmd($cmdKey, (string)$info[$cmdKey]);
+                        }
+                    }
+                }
+            }
+        }
+        break;
+
     case 'auth_required':
         message::add('alexadevices', __('Amazon session has expired. Please log in again in the plugin configuration.', __FILE__));
         break;

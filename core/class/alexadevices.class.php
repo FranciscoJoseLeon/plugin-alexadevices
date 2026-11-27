@@ -192,7 +192,7 @@ class alexadevices extends eqLogic {
         }
 
         // Obtener versión requerida en requirements.txt
-        $target_version = '17.2.7';
+        $target_version = '18.0.2';
         if (file_exists($req_file)) {
             $content = file_get_contents($req_file);
             if (preg_match('/aioamazondevices[>=~]=?([0-9.]+)/', $content, $m)) {
@@ -1138,6 +1138,11 @@ class alexadevices extends eqLogic {
 
         // 5. Info: Last Voice Command
         $this->getOrCreateCmd('last_command', 'info', 'string', __('Last Voice Command', __FILE__), false);
+
+        // 5b. Info: Next Alarm / Timer / Reminder (via HTTP/2 push)
+        $this->getOrCreateCmd('next_alarm', 'info', 'string', __('Next Alarm', __FILE__), false);
+        $this->getOrCreateCmd('next_timer', 'info', 'string', __('Next Timer', __FILE__), false);
+        $this->getOrCreateCmd('next_reminder', 'info', 'string', __('Next Reminder', __FILE__), false);
 
         // 6. Action: TTS (Speak)
         $this->getOrCreateCmd('speak', 'action', 'message', __('Speak (TTS)', __FILE__), true);
