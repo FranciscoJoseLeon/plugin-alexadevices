@@ -875,6 +875,7 @@ class alexadevices extends eqLogic {
             $replace['#media_section#'] = '';
             $replace['#volume_section#'] = '';
             $replace['#last_command_section#'] = '';
+            $replace['#notifications_section#'] = '';
             $replace['#quick_actions_section#'] = '';
             $replace['#sensors_display#'] = '';
             $replace['#aqm_display#'] = $this->buildAqmWidgetHtml($isOnline);
@@ -961,6 +962,28 @@ class alexadevices extends eqLogic {
             } else {
                 $replace['#last_command_section#'] = '';
             }
+
+            // Next Alarm / Timer / Reminder pills (populated via HTTP/2 push)
+            $notifPills = array();
+            $notifMeta = array(
+                'next_alarm' => array('icon' => 'fa-bell', 'label' => __('Next Alarm', __FILE__), 'color' => '#F59E0B'),
+                'next_timer' => array('icon' => 'fa-hourglass-half', 'label' => __('Next Timer', __FILE__), 'color' => '#38BDF8'),
+                'next_reminder' => array('icon' => 'fa-calendar-check', 'label' => __('Next Reminder', __FILE__), 'color' => '#A78BFA'),
+            );
+            $today = date('Y-m-d');
+            foreach ($notifMeta as $nKey => $nInfo) {
+                $nCmd = $this->getCmd(null, $nKey);
+                $nVal = is_object($nCmd) ? trim((string)$nCmd->execCmd()) : '';
+                if ($nVal !== '') {
+                    $shortVal = (strpos($nVal, $today . ' ') === 0) ? substr($nVal, 11, 5) : substr($nVal, 5, 11);
+                    $notifPills[] = '<span class="alexa-sensor-pill" title="' . htmlspecialchars($nInfo['label'] . ': ' . $nVal, ENT_QUOTES, 'UTF-8') . '">'
+                        . '<i class="fas ' . $nInfo['icon'] . '" style="color: ' . $nInfo['color'] . ';"></i> '
+                        . htmlspecialchars($shortVal, ENT_QUOTES, 'UTF-8') . '</span>';
+                }
+            }
+            $replace['#notifications_section#'] = !empty($notifPills)
+                ? '<div class="alexa-sensors-row alexa-notifications-row">' . implode('', $notifPills) . '</div>'
+                : '';
 
             // Quick Actions / TTS
             $cmdOptionsHtml = '';
