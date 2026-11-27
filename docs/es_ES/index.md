@@ -10,19 +10,21 @@ Plugin de integración nativa para dispositivos Amazon Echo y Alexa en Jeedom v4
 - **Text-to-Speech (TTS)**: Comando para hacer hablar a cualquier Echo (`speak`).
 - **Anuncios sonoros**: Difunde avisos con tono previo (`announcement`).
 - **Comandos de voz por texto**: Emula órdenes habladas mediante texto (`text_command`).
-- **Control multimedia y volumen**: Play, Pausa, Siguiente, Anterior y slider de volumen (0-100).
-- **Modo No Molestar (DND)**: Activación y desactivación del modo No Molestar.
-- **Historial vocal**: Registra la última orden escuchada por el micrófono.
-- **Autenticación con 2FA OTP**: Asistente interactivo con código de doble factor.
+- **Control multimedia y volumen**: Play, Pausa, Stop, Siguiente, Anterior, estado multimedia (`media_state`: `PLAYING`, `PAUSED`, `IDLE`) y slider de volumen (0-100).
+- **Modo No Molestar (DND)**: Activación, desactivación y estado sincronizado en tiempo real.
+- **Alarmas, temporizadores y recordatorios (Push HTTP/2)**: Comandos `next_alarm`, `next_timer` y `next_reminder` actualizados automáticamente mediante eventos push.
+- **Sensores**: Temperatura y calidad del aire actualizados por push HTTP/2; iluminancia y presencia/movimiento actualizados mediante el polling periódico configurable.
+- **Historial vocal**: Registra la última orden escuchada por el micrófono (`last_command`).
+- **Autenticación oficial Amazon (2FA / OTP)**: Ventana emergente oficial de Amazon compatible con SMS, WhatsApp, notificación en app o app autenticadora.
 
 ---
 
 ## Instalación y Configuración
 
 1. **Activar el plugin**: Ve a **Plugins > Gestión de Plugins > Alexa Devices** y haz clic en **Activar**.
-2. **Instalar dependencias**: Haz clic en **Instalar** en la sección de dependencias.
-3. **Conectar tu cuenta**: En la configuración del plugin, pulsa en **Iniciar Sesión / 2FA OTP** e introduce tus credenciales y el código de 6 dígitos.
-4. **Sincronizar**: Ve a **Plugins > Multimedia > Alexa Devices** y pulsa en **Sincronizar Dispositivos**.
+2. **Instalar dependencias**: Haz clic en **Relancer / Instalar** en la sección de dependencias y arranca el demonio.
+3. **Conectar tu cuenta**: En la configuración del plugin, elige tu país y pulsa **Conectar con Amazon**. Inicia sesión en la ventana de Amazon (el botón se habilita automáticamente en cuanto el demonio arranca). Si necesitas cambiar de cuenta, usa **Reiniciar sesión** en *Mantenimiento y reparación*.
+4. **Sincronizar y ajustar polling**: Los dispositivos Echo se sincronizan automáticamente. En **Ajustes avanzados** puedes ajustar el *Intervalo de sondeo* (`poll_interval`, por defecto `300` s). Si actualizas el plugin y hay comandos nuevos, pulsa **Recargar comandos** (*Reload commands*).
 
 ---
 

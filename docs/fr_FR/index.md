@@ -10,20 +10,22 @@ Plugin d'intégration moderne pour les appareils Amazon Echo et compatibles Alex
 - **Synthèse vocale (TTS)** : Commande pour faire parler n'importe quel Echo (`speak`).
 - **Annonces** : Diffuse des annonces sonores avec carillon d'attention préalable (`announcement`).
 - **Commandes vocales textuelles** : Permet de simuler des ordres vocaux par écrit (`text_command`), par exemple : *"allume la lumière du salon"*, *"mets du jazz"*.
-- **Contrôle multimédia complet** : Lecture, Pause, Suivant, Précédent et état actuel (*PLAYING*, *PAUSED*, *IDLE*).
+- **Contrôle multimédia complet** : Lecture, Pause, Stop, Suivant, Précédent et état actuel (`media_state` : *PLAYING*, *PAUSED*, *IDLE*).
 - **Contrôle de volume bidirectionnel** : Curseur de 0 à 100 avec synchronisation en direct.
-- **Mode Ne pas déranger (DND)** : Activation et désactivation du mode DND.
-- **Historique vocal** : Affiche la dernière commande vocale entendue par le microphone de l'Echo.
-- **Authentification 2FA / OTP sécurisée** : Assistant interactif prenant en charge la vérification en deux étapes (OTP par application ou SMS).
+- **Mode Ne pas déranger (DND)** : Activation, désactivation et statut synchronisé en temps réel.
+- **Alarmes, minuteurs et rappels (Push HTTP/2)** : Commandes `next_alarm`, `next_timer` et `next_reminder` mises à jour automatiquement par événements push.
+- **Capteurs** : Température et qualité de l'air mis à jour par push HTTP/2 ; luminosité et présence/mouvement mis à jour par le polling périodique configurable.
+- **Historique vocal** : Affiche la dernière commande vocale entendue par le microphone de l'Echo (`last_command`).
+- **Authentification officielle Amazon (2FA / OTP)** : Fenêtre officielle de connexion Amazon compatible SMS, WhatsApp, notification applicative ou application d'authentification.
 
 ---
 
 ## Installation et configuration
 
 1. **Activer le plugin** : Rendez-vous dans **Plugins > Gestion des plugins > Alexa Devices** et cliquez sur **Activer**.
-2. **Installer les dépendances** : Cliquez sur **Installer** dans la section Dépendances pour initialiser l'environnement virtuel Python 3 et les bibliothèques.
-3. **Se connecter à Amazon** : Dans la configuration du plugin, choisissez votre domaine Amazon, cliquez sur **Connexion / 2FA OTP**, puis renseignez vos identifiants Amazon et le code OTP à 6 chiffres.
-4. **Découvrir les appareils** : Allez dans **Plugins > Multimédia > Alexa Devices** et cliquez sur **Synchroniser les appareils**.
+2. **Installer les dépendances** : Cliquez sur **Relancer / Installer** dans la section Dépendances pour initialiser l'environnement virtuel Python 3 et démarrez le démon.
+3. **Se connecter à Amazon** : Dans la configuration du plugin, choisissez votre pays Amazon et cliquez sur **Se connecter avec Amazon** (activé automatiquement dès que le démon démarre). Pour changer de compte, utilisez **Réinitialiser la session** dans *Maintenance & Réparations*.
+4. **Découverte et polling** : Les appareils se synchronisent automatiquement. Dans **Paramètres avancés**, vous pouvez ajuster l'*Intervalle de sondage* (`poll_interval`, `300` s par défaut). Après une mise à jour ajoutant des commandes, cliquez sur **Recharger les commandes**.
 
 ---
 

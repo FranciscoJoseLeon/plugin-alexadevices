@@ -1,5 +1,13 @@
 # Changelog Alexa Devices
 
+## [0.9.1] - 27/11/2026
+### Añadido y Mejorado
+- Actualización de dependencia mínima a `aioamazondevices >= 18.0.2` (mejora de sincronización DND y logs push más limpios).
+- **Push en tiempo real de alarmas, temporizadores y recordatorios**: nuevos comandos `next_alarm`, `next_timer` y `next_reminder` actualizados mediante `on_notification_event`.
+- **Corrección de `media_state`**: lectura correcta de `player_state` (`PLAYING`, `PAUSED`, `IDLE`) en lugar de quedar en *Desconocido*.
+- **Mejoras del proxy OAuth y sesión**: coincidencia exacta de `/ap/maplanding` por ruta, preservación del campo OTP en páginas CVF, eliminación de cabeceras `Permissions-Policy` restrictivas, cierre limpio de sesiones `aiohttp` y corrección de `Reiniciar sesión` en memoria.
+- **Interfaz**: habilitación automática del botón *Conectar con Amazon* al arrancar el demonio y sondeo silencioso (`global: false`).
+
 ## [0.9.0] - 15/11/2026
 ### Añadido y Mejorado
 - Versión inicial beta v0.9.0 para Jeedom v4 / v4.4+ con soporte HTTP/2 push en tiempo real (`aioamazondevices >= 17.2.12`).

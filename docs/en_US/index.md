@@ -10,20 +10,22 @@ Modern integration plugin for Amazon Echo and Alexa-enabled devices in Jeedom v4
 - **Text-to-Speech (TTS)**: Send text to make any Echo speaker speak (`speak`).
 - **Announcements**: Broadcast attention chimes and spoken messages across devices (`announcement`).
 - **Text Voice Commands**: Execute voice commands via text (`text_command`), e.g., *"turn on the living room light"*, *"play jazz on Spotify"*.
-- **Full Media Player Control**: Play, Pause, Next, Previous, and state reporting (*PLAYING*, *PAUSED*, *IDLE*).
+- **Full Media Player Control**: Play, Pause, Stop, Next, Previous, and `media_state` reporting (*PLAYING*, *PAUSED*, *IDLE*).
 - **Bidirectional Volume Control**: 0-100 slider with live feedback.
-- **Do Not Disturb (DND)**: Enable or disable DND mode.
-- **Voice History**: Displays the last voice command captured by each Echo microphone.
-- **Interactive 2FA / OTP Authentication**: Step-by-step connection wizard supporting Two-Factor Authentication (OTP).
+- **Do Not Disturb (DND)**: Enable, disable, and live-synced status.
+- **Alarms, Timers & Reminders (HTTP/2 Push)**: `next_alarm`, `next_timer`, and `next_reminder` commands updated automatically via push events.
+- **Sensors**: Temperature and air quality updated via HTTP/2 push; illuminance and motion/presence updated via configurable periodic polling.
+- **Voice History**: Displays the last voice command captured by each Echo microphone (`last_command`).
+- **Official Amazon Authentication (2FA / OTP)**: Official Amazon sign-in window supporting SMS, WhatsApp, app approval, and authenticator apps.
 
 ---
 
 ## Installation & Configuration
 
 1. **Activate the plugin**: Navigate to **Plugins > Plugin management > Alexa Devices** and click **Enable**.
-2. **Install Dependencies**: Click on **Install** in the Dependencies section to set up the Python 3 virtual environment and required libraries.
-3. **Connect to Amazon**: In the plugin configuration, select your Amazon domain, click **Sign In / 2FA OTP**, enter your Amazon credentials and the 6-digit OTP verification code.
-4. **Discover Devices**: Go to **Plugins > Multimedia > Alexa Devices** and click **Synchronize Devices**.
+2. **Install Dependencies**: Click **Relaunch / Install** in the Dependencies section to set up the Python 3 virtual environment and start the daemon.
+3. **Connect to Amazon**: In the plugin configuration, select your Amazon country and click **Connect with Amazon** (automatically enabled once the daemon starts). To switch accounts, use **Reset session** under *Maintenance & Repair*.
+4. **Discover & Polling**: Devices sync automatically. Under **Advanced settings**, you can adjust the *Polling Interval* (`poll_interval`, default `300` s). After plugin updates that add new commands, click **Reload commands**.
 
 ---
 
