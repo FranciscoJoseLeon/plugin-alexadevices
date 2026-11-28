@@ -884,9 +884,15 @@ class alexadevices extends eqLogic {
 
             $dnd = $this->getCmd(null, 'dnd_status');
             $isDnd = (is_object($dnd) && $dnd->execCmd() == 1);
+            $dndOnCmd = $this->getCmd(null, 'dnd_on');
+            $dndOffCmd = $this->getCmd(null, 'dnd_off');
+            $dndToggleId = $isDnd
+                ? (is_object($dndOffCmd) ? $dndOffCmd->getId() : '')
+                : (is_object($dndOnCmd) ? $dndOnCmd->getId() : '');
+            $dndTitle = $isDnd ? __('Disable Do Not Disturb', __FILE__) : __('Enable Do Not Disturb', __FILE__);
             $replace['#dnd_display#'] = $isDnd
-                ? '<span class="label label-warning" style="font-size:10px;"><i class="fas fa-moon"></i> DND</span>'
-                : '';
+                ? '<span class="label label-warning cmd-btn-alexa cursor" data-cmd_id="' . $dndToggleId . '" title="' . htmlspecialchars($dndTitle, ENT_QUOTES, 'UTF-8') . '" style="font-size:10px;cursor:pointer;"><i class="fas fa-moon"></i> DND</span>'
+                : '<span class="label cmd-btn-alexa cursor" data-cmd_id="' . $dndToggleId . '" title="' . htmlspecialchars($dndTitle, ENT_QUOTES, 'UTF-8') . '" style="font-size:10px;cursor:pointer;background:rgba(255,255,255,0.08);color:#94A3B8;border:1px solid rgba(255,255,255,0.12);"><i class="fas fa-moon"></i> DND</span>';
 
             $replace['#header_row#'] = '
             <div class="alexa-header-row">
