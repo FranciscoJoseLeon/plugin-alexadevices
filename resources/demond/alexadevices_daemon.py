@@ -1343,6 +1343,7 @@ body, h1, h2, h3, h4, p, label, span, div, a, input, button, .a-text-bold {
             elif action == "dnd":
                 enable = bool(params.get("enable", True))
                 await self.api.set_do_not_disturb(device, enable)
+                await self._send_to_jeedom("dnd_state", {serial: enable})
 
             elif action == "info_skill":
                 skill = params.get("skill", "weather")

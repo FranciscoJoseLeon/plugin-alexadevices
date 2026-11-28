@@ -585,12 +585,26 @@
                 }
             });
 
-            // Manejador de botones multimedia
+            // Manejador de botones multimedia y DND
             $widget.find('.cmd-btn-alexa').off('click').on('click', function() {
-                var cmdId = $(this).attr('data-cmd_id');
-                if (cmdId) {
-                    jeedom.cmd.execute({id: cmdId});
-                }
+                var $btn = $(this);
+                var cmdId = $btn.attr('data-cmd_id');
+                if (!cmdId) return;
+                jeedom.cmd.execute({
+                    id: cmdId,
+                    success: function() {
+                        if ($btn.hasClass('alexa-dnd-btn')) {
+                            var nextOn = $btn.attr('data-dnd_state') !== '1';
+                            $btn.attr('data-dnd_state', nextOn ? '1' : '0');
+                            $btn.attr('data-cmd_id', nextOn ? $btn.attr('data-dnd_off_id') : $btn.attr('data-dnd_on_id'));
+                            if (nextOn) {
+                                $btn.css({background: '#F59E0B', color: '#0F172A', borderColor: '#F59E0B'});
+                            } else {
+                                $btn.css({background: 'rgba(255,255,255,0.08)', color: '#94A3B8', borderColor: 'rgba(255,255,255,0.12)'});
+                            }
+                        }
+                    }
+                });
             });
 
             // Manejador del slider de volumen
