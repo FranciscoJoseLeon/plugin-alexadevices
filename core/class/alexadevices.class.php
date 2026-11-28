@@ -838,6 +838,8 @@ class alexadevices extends eqLogic {
             $replace['#style#'] = preg_replace('/height\s*:\s*[^;]+;?/', '', $replace['#style#']);
         }
         $replace['#eqLogic_href#'] = $this->getLinkToConfiguration();
+        $refreshCmd = $this->getCmd(null, 'refresh');
+        $replace['#refresh_id#'] = is_object($refreshCmd) ? $refreshCmd->getId() : '';
 
         $status = $this->getCmd(null, 'status');
         $isOnline = (is_object($status) && $status->execCmd() == 1);
@@ -1141,6 +1143,9 @@ class alexadevices extends eqLogic {
         // 1. Info: Online Status
         $this->getOrCreateCmd('status', 'info', 'binary', __('Online Status', __FILE__), false);
 
+        // 1b. Action: Refresh
+        $this->getOrCreateCmd('refresh', 'action', 'other', __('Refresh', __FILE__), false);
+
         // Si es un monitor de calidad del aire, no creamos comandos multimedia/audio
         if ($isAqm) {
             $unwanted = array('volume', 'media_state', 'dnd_status', 'last_command', 'speak', 'whisper',
@@ -1392,6 +1397,10 @@ class alexadevicesCmd extends cmd {
         $params = array();
 
         switch ($logicalId) {
+            case 'refresh':
+                alexadevices::syncDevices();
+                return true;
+
             case 'speak':
                 $action = 'speak';
                 $params['text'] = isset($options['message']) ? $options['message'] : '';
