@@ -1,5 +1,11 @@
 # Changelog Alexa Devices
 
+## [1.0.0] - 28/11/2026
+### Añadido y Mejorado
+- Primera versión estable `1.0.0`.
+- Botón clicable de modo No Molestar (`DND`) en el widget (Dashboard y Móvil) con actualización instantánea.
+- Comando `refresh` conectado al botón de refresco del widget.
+
 ## [0.9.1] - 27/11/2026
 ### Añadido y Mejorado
 - Actualización de dependencia mínima a `aioamazondevices >= 18.0.2` (mejora de sincronización DND y logs push más limpios).

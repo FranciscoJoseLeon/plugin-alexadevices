@@ -1,5 +1,11 @@
 # Changelog Alexa Devices
 
+## [1.0.0] - 2026-11-28
+### Added & Improved
+- First `1.0.0` release.
+- Clickable Do Not Disturb (`DND`) toggle pill in Dashboard and Mobile widgets with instant state feedback.
+- Wired up `refresh` command on the widget refresh icon.
+
 ## [0.9.1] - 2026-11-27
 ### Added & Improved
 - Updated minimum dependency to `aioamazondevices >= 18.0.2` (improved DND state emission and cleaner push logs).

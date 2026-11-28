@@ -1,5 +1,11 @@
 # Changelog Alexa Devices
 
+## [1.0.0] - 28/11/2026
+### Ajouté et Amélioré
+- Première version `1.0.0`.
+- Badge `DND` (Ne pas déranger) cliquable dans les widgets Dashboard et Mobile avec mise à jour instantanée.
+- Commande `refresh` connectée au bouton de rafraîchissement du widget.
+
 ## [0.9.1] - 27/11/2026
 ### Ajouté et Amélioré
 - Mise à jour de la dépendance minimale vers `aioamazondevices >= 18.0.2` (meilleure synchronisation DND et logs push plus propres).

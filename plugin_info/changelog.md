@@ -1,5 +1,13 @@
 # Changelog Alexa Devices
 
+## [1.0.0] - 2026-11-28
+- First 1.0.0 release.
+- Clickable DND toggle badge and widget `refresh` command.
+- Updated `aioamazondevices >= 18.0.2`.
+- Real-time HTTP/2 push for alarms, timers, and reminders (`next_alarm`, `next_timer`, `next_reminder`).
+- Fixed `media_state` reporting (`player_state`).
+- OAuth proxy, session reset, and UI polling fixes.
+
 ## [0.9.1] - 2026-11-27
 - Updated `aioamazondevices >= 18.0.2`.
 - Real-time HTTP/2 push for alarms, timers, and reminders (`next_alarm`, `next_timer`, `next_reminder`).

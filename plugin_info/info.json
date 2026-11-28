@@ -10,7 +10,7 @@
   "category": "communication",
   "author": "FranciscoJoseLeon",
   "licence": "GPL",
-  "version": "0.9.1",
+  "version": "1.0.0",
   "require": "4.2",
   "os": {
     "min": 10,
